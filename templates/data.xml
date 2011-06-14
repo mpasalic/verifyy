@@ -1,0 +1,34 @@
+<chart palette='3' caption='{{ exp.x_name }} vs {{ exp.y_name }}' yAxisName='{{ exp.y_name }}' xAxisName='{{ exp.x_name }}' showLegend='0' showLabels='1' xAxisMaxValue='10' xAxisMinValue='0' >
+
+<categories verticalLineThickness='1'>
+	<category label='1' x='1' showVerticalLine='1'/>
+	<category label='2' x='2' showVerticalLine='1'/>
+	<category label='3' x='3' showVerticalLine='1'/>
+	<category label='4' x='4' showVerticalLine='1'/>
+	<category label='5' x='5' showVerticalLine='1'/>
+	<category label='6' x='6' showVerticalLine='1'/>
+	<category label='7' x='7' showVerticalLine='1'/>
+	<category label='8' x='8' showVerticalLine='1'/>
+	<category label='9' x='9' showVerticalLine='1'/>
+	<category label='10' x='10' showVerticalLine='0'/>
+</categories>
+
+<dataSet seriesName='Equities' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
+<set id='INVEQ324_1' x='4.2' y='46.000' tooltext='4.2 hrs., 46.000%'/>
+
+{% for datapoint in exp.data_set.all %}
+	<set id="INVEQ324_{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comment }}"/>
+{% endfor %}
+
+</dataSet>
+
+<styles>
+	<definition>
+		<style name="myCaptionFont" type="font" font="Arial" size="14" bold="1" underline="1" /> 
+	</definition>
+	<application>
+		<apply toObject="Caption" styles="myCaptionFont" /> 
+	</application>
+</styles>
+
+</chart>

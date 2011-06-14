@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="text-align: center">
+    <form action="/login" method="post">
+        Username: <input name="username" type="text" /><br />
+        Password: <input name="password" type="text" /><br />
+        <input value="login" type="submit" />
+    </form>
+    <br>
+<a href="/register">Create an account</a>
+</div>
+
+ {% endblock %}
