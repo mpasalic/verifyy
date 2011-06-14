@@ -11,4 +11,11 @@ class Experiment(models.Model):
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 
+class Data(models.Model):
+	x = models.IntegerField()
+	y = models.IntegerField()
+	comments = models.TextField()
+	experiment = models.ForeignKey(Experiment)
 	
+	def __unicode__(self):
+		return self.x + ", " + self.y

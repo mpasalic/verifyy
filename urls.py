@@ -5,7 +5,10 @@ handler500 = 'djangotoolbox.errorviews.server_error'
 
 urlpatterns = patterns('',
     (r'^$', 'main.views.index'),
+	(r'^login$', 'main.views.login'),
+	(r'^register$', 'main.views.register'),
     (r'^view/(?P<exp_id>\d+)/$', 'main.views.experiment'),
+	(r'^data/(?P<exp_id>\d+)/$', 'main.views.data'),
     (r'^new$', 'main.views.new_experiment'),
     (r'^create$', 'main.views.create_experiment'),
     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  settings.STATIC_DOC_ROOT}),

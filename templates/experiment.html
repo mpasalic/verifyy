@@ -2,6 +2,48 @@
 
 {% block title %}Experiment{% endblock %}
 
+{% block extrahead %}
+<script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
+{% endblock %}
+
 {% block content %}
-{{ exp_id }}
+<h1>{{ exp.y_name }} with {{ exp.x_name }}</h1>
+
+<form action="join/{{ exp.pk }}" method="post">
+<input type="submit" value="Join Experiment">
+</form>
+<form action="submit/{{ exp.pk }}" method="post">
+<input type="submit" value="View Results">
+</form>
+
+<h3>Description</h3>    
+
+<div style="border:1px solid grey; padding: 10px 10px">
+{{ exp.description }}
+</div>
+
+<h3>Measurements</h3>    
+<div style="border:1px solid grey; padding: 10px 10px">
+"{{ exp.y_name }}" measured in {{ exp.y_units }}.<br>
+{{ exp.y_control }}<br><br>
+
+"{{ exp.x_name }}" is measured in {{ exp.x_units }}.<br>
+{{ exp.x_control }}
+</div> 
+
+<br>
+
+    
+
+<h2>Experiment data</h2>
+<div id="chartdiv" align="center"> FusionCharts. </div>
+<script type="text/javascript">
+	var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "560", "400", "0", "0");
+	
+	chart.setXMLUrl("/data/{{ exp.pk }}/");		   
+ 	chart.render("chartdiv");
+</script>
+
+
+
 {% endblock %}

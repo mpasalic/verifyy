@@ -23,7 +23,7 @@ STATIC_DOC_ROOT = PROJECT_ROOT + '/static/'
 INSTALLED_APPS = (
 #    'django.contrib.admin',
     'django.contrib.contenttypes',
-    #'django.contrib.auth',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'djangotoolbox',
     'autoload',

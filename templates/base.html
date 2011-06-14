@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>VerifyY - Verify what affects what! - {% block pagetitle %}{% endblock %}</title>
-<link href="static/css/main.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/main.css" rel="stylesheet" type="text/css" />
 {% block extrahead %}{% endblock %}
 </head>
 <body>
@@ -11,36 +11,41 @@
 <div id="all">
 
     <div id="header">
-        <img src="static/images/header.png" />
+        <img src="/static/images/header.png" />
         <div id="subheader">
 
         	<span id="menu">
 			&nbsp;
+            {% if request.user.is_authenticated %}
+            Welcome {{ user.username }}
+            {% else %}
 			<span class="menu_item">
-				login
-			</span>
+			<a href="/login">login</a> 
+            </span>
+            {% endif %}
 		</span>
         </div>
     </div> 
 
-    <div id="body">
-		{% block search %}
-		<div style="width: 500px; margin-left: auto; margin-right: auto;">
-   			<form>
-				<input id="search_bar" type="textbox">
-			</form> 
-			<div class="help_text" style="width: 100%; text-align: right;">
-				e.g how apples affect health<br>
-				     how sleep affects marks
-			</div>
-		</div>
-		{% endblock %}
-
+    <div id="content">
+		{% block search %}{% endblock %}
+        
+		{% if error_message %}
+        <div class="error">{{ error_message }}</div>
+        {% endif %}
+        
+        {% if info_message %}
+        <div class="info">{{ info_message }}</div>
+        {% endif %}
+        
 		{% block content %}{% endblock %}
 
-    </div>
+  </div>
 
 </div>
+<div class="space" style="min-height: 20px"></div>
+<div id="footer">
+&copy;VerifyY | <a href="/">VerifyY Home</a> | <a href="/faq">FAQ</a> | <a href="/privacy">Privacy Policy </a></div>
 
 </body>
 </html>
