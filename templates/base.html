@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>VerifyY - Verify what affects what! - {% block pagetitle %}{% endblock %}</title>
+<link href="static/css/main.css" rel="stylesheet" type="text/css" />
+{% block extrahead %}{% endblock %}
+</head>
+<body>
+
+<div id="all">
+
+    <div id="header">
+        <img src="static/images/header.png" />
+        <div id="subheader">
+
+        	<span id="menu">
+			&nbsp;
+			<span class="menu_item">
+				login
+			</span>
+		</span>
+        </div>
+    </div> 
+
+    <div id="body">
+		{% block search %}
+		<div style="width: 500px; margin-left: auto; margin-right: auto;">
+   			<form>
+				<input id="search_bar" type="textbox">
+			</form> 
+			<div class="help_text" style="width: 100%; text-align: right;">
+				e.g how apples affect health<br>
+				     how sleep affects marks
+			</div>
+		</div>
+		{% endblock %}
+
+		{% block content %}{% endblock %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
+

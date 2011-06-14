@@ -1,5 +1,18 @@
 /* CSS Document */
 
+
+h1 {
+	font-size: 15pt;
+	color: #222222;
+	margin-bottom: 5px;
+}
+
+h2 {
+	font-size: 12pt;
+	color: #222222;
+	margin-bottom: 5px;
+}
+
 #body {
 
 	margin-top: 10px;	

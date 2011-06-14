@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}
+Create a new experiment
+{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+	function xchange(x) {
+	 	var elements = document.getElementsByName("x");
+		for (var i = 0; i < elements.length; i++) {
+			elements[i].innerHTML = x;
+		}
+	}
+
+	function ychange(y) {
+		var elements = document.getElementsByName("y");
+        	for (var i = 0; i < elements.length; i++) {
+                        elements[i].innerHTML = y;
+                }
+         
+
+	}
+</script>
+{% endblock %}
+
+{% block search %}
+{% endblock %}
+
+
+{% block content %}
+<form action="/create" method="post">
+        <h1>Create an experiment</h1>
+        How does <input name="x" type="text" value="" onkeyup="xchange(this.value)"> affect <input name="y" type="text" value="" onkeyup="ychange(this.value)">?<br>
+
+        <h2>Experiment description</h2>
+        <textarea name="desc" rows="10" cols="80"></textarea><br><br>
+        
+        <h2>Measurements</h2>
+
+        <span name="x" class="experiment_name"></span> is measured in units of 
+        <input name="xunits" type="text" value=""><br>
+        <span name="y" class="experiment_name"></span> is measured in units of 
+        <input name="yunits" type="text" value=""><br><br>
+        
+        How is <span name="x" class="experiment_name"></span> controlled?<br>
+        <textarea name="xdesc" rows="5" cols="80"></textarea><br>
+
+        How is <span name="y" class="experiment_name"></span> measured?<br>
+        <textarea name="ydesc" rows="5" cols="80"></textarea><br><br>
+
+        <h2>Duration:</h2>        
+        The experiment will run until:<br>
+        <input type="radio" name="duration_type" checked><input name="num_days" type="text" value="60"> days.</input><br>
+        <input type="radio" name="duration_type"><input name="num_results" type="text" value="100"> results collected.</input><br>
+        <input type="radio" name="duration_type"> forever.</input><br><br>
+        
+        <b>Capcha</b>
+        Enter the text in the image:<br>
+        <img src="http://demo.templateplazza.net/soft_plazza/modules/mod_tploginxtd/assets/captcha.php?mid=133"/><br>
+        <input type="text" value=""><br><br>
+
+        <input type="submit" value="Create Experiment"/>
+        <input type="submit" value="Propose Experiment"/>
+        </form>
+{% endblock %}
