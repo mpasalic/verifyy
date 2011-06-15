@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Experiment(models.Model):
 	x_name = models.CharField(max_length=256)
@@ -16,6 +17,7 @@ class Data(models.Model):
 	y = models.IntegerField()
 	comments = models.TextField()
 	experiment = models.ForeignKey(Experiment)
+	user = models.ForeignKey(User)
 	
 	def __unicode__(self):
 		return self.x + ", " + self.y

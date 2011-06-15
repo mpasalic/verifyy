@@ -1,5 +1,5 @@
 # Create your views here.
-from main.models import Experiment
+from main.models import Experiment, Data
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
 from django.contrib import auth
+from exceptions import ValueError
 
 
 def index(request):
@@ -44,10 +45,29 @@ def register(request):
 
 def experiment(request, exp_id):	
 	exp = get_object_or_404(Experiment, pk=exp_id)
-	return render_to_response('experiment.html', {'exp': exp, 'request': request })
+	return render_to_response('experiment.html', {'exp': exp, 'request': request})
 
+def submit_error(var_name):
+	return "'%s' must be a whole number." % var_name;
+	
+def submit(request, exp_id):
+	if(request.method == 'POST'):
+		exp = get_object_or_404(Experiment, pk=exp_id)
+		try:
+			x_val = int(request.POST['x'])
+		except ValueError:
+			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
+		try:
+			y_val = int(request.POST['y'])
+		except ValueError:
+			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.y_name)})
+			
+		data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp);
+		data.save()
+	return redirect("/view/%d/" % (exp.id));
+	
 def new_experiment(request):
-    return render_to_response('new_experiment.html', { 'request': request })
+    return render_to_response('new_experiment.html', {'request': request})
 
 def data(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)

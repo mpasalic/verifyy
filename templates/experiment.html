@@ -9,11 +9,11 @@
 {% block content %}
 <h1>{{ exp.y_name }} with {{ exp.x_name }}</h1>
 
-<form action="join/{{ exp.pk }}" method="post">
+<form action="/join/{{ exp.pk }}/" method="get">
 <input type="submit" value="Join Experiment">
 </form>
-<form action="submit/{{ exp.pk }}" method="post">
-<input type="submit" value="View Results">
+<form action="/submitform/{{ exp.pk }}/" method="get">
+<input type="submit" value="Submit Data">
 </form>
 
 <h3>Description</h3>    
@@ -44,6 +44,26 @@
  	chart.render("chartdiv");
 </script>
 
-
-
+<h2>Submit Data</h2>
+<div style="border:1px solid grey; padding: 10px 10px">
+Submit your own data:<br><br>
+<form action="/submit/{{ exp.pk }}/" method="post">
+<table>
+<tr>
+	<td>{{ exp.x_name }}:</td>
+	<td><input type="number" name="x"/></td>
+</tr>
+<tr>
+	<td>{{ exp.y_name }}:</td>
+	<td><input type="number" name="y"/></td>
+</tr>
+<tr>
+	<td>Comments:</td>
+	<td><input type="text" name="comments"/></td>
+</tr>
+</table>
+<br>
+<input type="submit" value="Submit Data">
+</form>
+</div>
 {% endblock %}
