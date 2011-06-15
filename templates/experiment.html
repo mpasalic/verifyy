@@ -44,26 +44,33 @@
  	chart.render("chartdiv");
 </script>
 
-<h2>Submit Data</h2>
+<h2>Your Data</h2>
 <div style="border:1px solid grey; padding: 10px 10px">
-Submit your own data:<br><br>
-<form action="/submit/{{ exp.pk }}/" method="post">
-<table>
-<tr>
-	<td>{{ exp.x_name }}:</td>
-	<td><input type="number" name="x"/></td>
-</tr>
-<tr>
-	<td>{{ exp.y_name }}:</td>
-	<td><input type="number" name="y"/></td>
-</tr>
-<tr>
-	<td>Comments:</td>
-	<td><input type="text" name="comments"/></td>
-</tr>
-</table>
-<br>
-<input type="submit" value="Submit Data">
-</form>
+{% if user_data %}
+	Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
+	{% for data in user_data %}
+		{{ exp.x_name }}: {{ data.x }}, {{ exp.y_name }}: {{ data.y }}<br>
+	{% endfor %}
+{% else %}
+	Submit your own data:<br><br>
+	<form action="/submit/{{ exp.pk }}/" method="post">
+	<table>
+	<tr>
+		<td>{{ exp.x_name }}:</td>
+		<td><input type="number" name="x"/></td>
+	</tr>
+	<tr>
+		<td>{{ exp.y_name }}:</td>
+		<td><input type="number" name="y"/></td>
+	</tr>
+	<tr>
+		<td>Comments:</td>
+		<td><input type="text" name="comments"/></td>
+	</tr>
+	</table>
+	<br>
+	<input type="submit" value="Submit Data">
+	</form>
+{% endif %}
 </div>
 {% endblock %}

@@ -17,7 +17,7 @@ class Data(models.Model):
 	y = models.IntegerField()
 	comments = models.TextField()
 	experiment = models.ForeignKey(Experiment)
-#	user = models.ForeignKey(User)
+	user = models.ForeignKey(User)
 	
 	def __unicode__(self):
 		return self.x + ", " + self.y

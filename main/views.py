@@ -43,9 +43,10 @@ def register(request):
 		else:
 			return render_to_response('login.html', { 'info_message' : "Succesfully registered user", 'request': request  })
 
-def experiment(request, exp_id):	
+def experiment(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
-	return render_to_response('experiment.html', {'exp': exp, 'request': request})
+	data = Data.objects.filter(experiment = exp, user = request.user);
+	return render_to_response('experiment.html', {'exp': exp, 'request': request, 'user_data': data})
 
 def submit_error(var_name):
 	return "'%s' must be a whole number." % var_name;
@@ -62,7 +63,7 @@ def submit(request, exp_id):
 		except ValueError:
 			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.y_name)})
 			
-		data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp);
+		data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
 		data.save()
 	return redirect("/view/%d/" % (exp.id));
 	
