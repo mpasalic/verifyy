@@ -6,48 +6,52 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib import auth
+
 
 def index(request):
-    return render_to_response('index.html')
+    return render_to_response('index.html', { 'request': request })
 
 def login(request):
 	if (request.method == 'GET'):
-		return render_to_response('login.html')
+		return render_to_response('login.html', { 'request': request })
 	elif (request.method == 'POST'):
-		user = authenticate(username=request.POST['username'], password=request.POST['password'])
+		user = auth.authenticate(username=request.POST['username'], password=request.POST['password'])
 		if user is not None:
 			if user.is_active:
 				auth.login(request, user)
 				return redirect('/');
 			else:
-				return render_to_response('login.html', { 'error_message' : "Account is disabled." })
+				return render_to_response('login.html', { 'error_message' : "Account is disabled.", 'request': request  })
 		else:
-			return render_to_response('login.html', { 'error_message' : "Invalid username or password." })
+			return render_to_response('login.html', { 'error_message' : "Invalid username or password.",  'request': request })
 
+def logout(request):
+	auth.logout(request)
+	return render_to_response('login.html', { 'request': request, 'info_message': "Succesfully logged out" })
 
 def register(request):
 	if (request.method == 'GET'): 
-		return render_to_response('register.html')
+		return render_to_response('register.html', { 'request': request })
 	elif (request.method == 'POST'):
 		try:
 			user = User.objects.create_user(request.POST['username'], request.POST['email'], request.POST['password'])
 			user.save();
 		except (KeyError):
-			return render_to_response('register.html', { 'error_message' : "Please fill out all fields" })
+			return render_to_response('register.html', { 'error_message' : "Please fill out all fields",  'request': request  })
 		else:
-			return render_to_response('login.html', { 'info_message' : "Succesfully registered user" })
+			return render_to_response('login.html', { 'info_message' : "Succesfully registered user", 'request': request  })
 
 def experiment(request, exp_id):	
 	exp = get_object_or_404(Experiment, pk=exp_id)
-	return render_to_response('experiment.html', {'exp': exp})
+	return render_to_response('experiment.html', {'exp': exp, 'request': request })
 
 def new_experiment(request):
-    return render_to_response('new_experiment.html')
+    return render_to_response('new_experiment.html', { 'request': request })
 
 def data(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
-	return render_to_response('data.xml', {'exp': exp}, mimetype="application/xml")
+	return render_to_response('data.xml', {'exp': exp, 'request': request }, mimetype="application/xml")
 
 def create_experiment(request):
 	exp = Experiment()
@@ -61,7 +65,7 @@ def create_experiment(request):
 		exp.y_control = request.POST['ydesc']
 		
 	except (KeyError):
-		return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields" })
+		return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
 	else:
 		exp.save()
 		return redirect("/view/%d/" % (exp.id));

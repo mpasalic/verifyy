@@ -6,6 +6,7 @@ handler500 = 'djangotoolbox.errorviews.server_error'
 urlpatterns = patterns('',
     (r'^$', 'main.views.index'),
 	(r'^login$', 'main.views.login'),
+	(r'^logout$', 'main.views.logout'),
 	(r'^register$', 'main.views.register'),
     (r'^view/(?P<exp_id>\d+)/$', 'main.views.experiment'),
 	(r'^data/(?P<exp_id>\d+)/$', 'main.views.data'),

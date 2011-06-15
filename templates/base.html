@@ -17,9 +17,8 @@
         	<span id="menu">
 			&nbsp;
             {% if request.user.is_authenticated %}
-            Welcome {{ user.username }}
-            {% else %}
-			<span class="menu_item">
+            Welcome {{ request.user.username }} (<a href="/logout">logout</a>)
+            {% else %} <span class="menu_item">
 			<a href="/login">login</a> 
             </span>
             {% endif %}
