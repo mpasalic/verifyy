@@ -10,7 +10,9 @@ from django.contrib import auth
 
 
 def index(request):
-    return render_to_response('index.html', { 'request': request })
+
+	list = Experiment.objects.all().order_by('-created')[:5]
+	return render_to_response('index.html', { 'request': request, 'list':list })
 
 def login(request):
 	if (request.method == 'GET'):

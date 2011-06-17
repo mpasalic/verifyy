@@ -8,6 +8,7 @@ class Experiment(models.Model):
 	x_control = models.TextField()
 	y_units = models.CharField(max_length=256)
 	y_control = models.TextField()
+	created = models.DateTimeField(auto_now=True)
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 
@@ -16,6 +17,7 @@ class Data(models.Model):
 	y = models.IntegerField()
 	comments = models.TextField()
 	experiment = models.ForeignKey(Experiment)
+	created = models.DateTimeField(auto_now=True)
 	
 	def __unicode__(self):
 		return self.x + ", " + self.y
