@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}
+Welcome!
+{% endblock %}
+
+{% block extrahead %}
+<style type="text/css">
+.experiment {
+}
+.experiment_name {
+	font-size: 14pt;
+}
+.x_name, .y_name {
+}
+
+.experiment_desc {
+	color:#444;
+}
+
+.experiment_extra {
+	color:#999;
+	font-size: 9pt;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space" style="min-height: 10px"></div>
+<div style="width: 500px; margin-left: auto; margin-right: auto;">
+	<div style="font-size: 14pt;">search for experiments...</div>
+    <form action="/search" method="get">
+        <input name="q" id="search_bar" type="textbox" value="{{ search }}">
+        {% if not search %}
+         <div class="help_text" style="width: 100%; text-align: right;">
+        	e.g how apples affect health<br>
+            how sleep affects marks
+    	</div>
+        {% endif %}
+    </form> 
+
+</div>
+
+{% if search %}
+    <div style="min-height: 20px;">
+    </div>
+    <h1>Search results...</h1>
+    <div>
+    {% include 'list.html' with no_results_message="No results founds" %}
+    </div>
+{% endif %}
+
+{% endblock %}

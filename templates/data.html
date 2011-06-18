@@ -1,0 +1,8 @@
+{% for point in data %}
+
+<a href="/view/{{ point.experiment.pk }}/">@{{ point.experiment }}</a>: {{ point.experiment.x_name }}: {{ point.x }}, {{ point.experiment.y_name }}: {{ point.y }}<br>
+
+{% empty %}
+No data points.
+
+{% endfor %}

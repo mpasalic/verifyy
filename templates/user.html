@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}
+	{{ user.username }} profile
+{% endblock %}
+
+{% block extrahead %}
+<style type="text/css">
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div style="min-height: 20px;">
+</div>
+<h1>{{ user.username }}</h1>
+<h2>Experiments joined</h2>
+<div>
+{% include 'list.html' %}
+</div>
+<h2>Data points</h2>
+<div>
+{% include 'data.html' %}
+</div>
+
+{% endblock %}

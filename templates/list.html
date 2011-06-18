@@ -1,0 +1,36 @@
+{% for exp in list %}
+
+<div style="clear: both; height: 5px;"></div>
+<div class="experiment_dividor" style="clear: both; margin: 0px;"></div>
+<div style="clear: both; height: 5px;"></div>
+
+<div class="experiment">
+    <div class="experiment_statistics">
+        <div class="experiment_number experiment_vote" style="float: left;">
+            {{ exp.vote }}
+            <div class="experiment_number_desc">votes</div>
+        </div>
+        <!--
+        <div class="experiment_number experiment_users" style="float: left;">
+            {{ exp.subscription_set.all.count }}
+            <div class="experiment_number_desc">users</div>
+        </div>
+        <div class="experiment_number experiment_entries" style="float: left;">
+            {{ exp.data_set.all.count }}
+            <div class="experiment_number_desc">data</div>
+        </div>
+        -->
+    </div>
+    <div class="experiment_summary" style="float: left; max-width: 650px;">
+        <div class="experiment_name"><a href="/view/{{ exp.pk }}"><span class="y_name">{{ exp.y_name }}</span> with <span class="x_name">{{ exp.x_name }}</span></a></div>
+    	<div class="experiment_desc">{{ exp.description }}</div>
+        <div class="experiment_extra"> <strong>{{ exp.subscription_set.all.count }}</strong> user(s) &nbsp;&nbsp;&nbsp; <strong>{{ exp.data_set.all.count }}</strong> data point(s) </div>
+    </div>
+</div>
+{% empty %}
+	{{ no_results_message }}
+{% endfor %}
+
+<div style="clear: both; height: 5px;"></div>
+<div class="experiment_dividor" style="clear: both; margin: 0px;"></div>
+<div style="clear: both; height: 5px;"></div>
