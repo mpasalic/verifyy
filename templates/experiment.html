@@ -7,27 +7,29 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ exp.y_name }} with {{ exp.x_name }}</h1>
-
-<form action="join/{{ exp.pk }}" method="post">
-<input type="submit" value="Join Experiment">
-</form>
-<form action="submit/{{ exp.pk }}" method="post">
-<input type="submit" value="View Results">
-</form>
-
-<h3>Description</h3>    
-
-<div style="border:1px solid grey; padding: 10px 10px">
-{{ exp.description }}
+<div class="experiment_number experiment_vote" style="float: left;">
+	<div style="float: left; margin-left: 5px;">
+        {{ exp.vote }}
+        <div class="experiment_number_desc">votes</div>
+    </div>
+<div style="float: left;">
+    	<div style="position:relative; left: 3px; top: 5px;"><a href="/upvote/{{ exp.pk }}/"><img src="/static/images/uparrow.png" /></a></div>
+   	<div style="position:relative; left: 3px; top: 13px;"><a href="/downvote/{{ exp.pk }}/"><img src="/static/images/downarrow.png" /></a></div>
+  </div>
 </div>
 
-<h3>Measurements</h3>    
-<div style="border:1px solid grey; padding: 10px 10px">
-"{{ exp.y_name }}" measured in {{ exp.y_units }}.<br>
+<div style="float: left; max-width: 650px; margin-left: 10px">
+    <h1 style="margin-top: 0px;">{{ exp.y_name }} with {{ exp.x_name }}</h1>
+    {{ exp.description }}
+  
+</div>
+<p style="clear: both"></p>
+
+<div style=" padding: 10px 10px">
+<span class="" style="font-weight: bold; font-size: 11pt;">{{ exp.y_name }}</span> measured in {{ exp.y_units }}.<br>
 {{ exp.y_control }}<br><br>
 
-"{{ exp.x_name }}" is measured in {{ exp.x_units }}.<br>
+<span class="" style="font-weight: bold; font-size: 11pt;">{{ exp.x_name }}</span> is measured in {{ exp.x_units }}.<br>
 {{ exp.x_control }}
 </div> 
 
@@ -44,6 +46,53 @@
  	chart.render("chartdiv");
 </script>
 
+<h2>Your Data</h2>
+<div style="border:1px solid grey; padding: 10px 10px">
+{% if not request.user.is_authenticated %}
+Login to submit data.
+{% else %}
+    
+    {% if user_data %}
+        Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
+        {% for data in user_data %}
+            {{ exp.x_name }}: {{ data.x }}, {{ exp.y_name }}: {{ data.y }}<br>
+        {% endfor %}
+    {% else %}
+    
+        {% if subscription %}
+      
+            <form action="/unjoin/{{ exp.pk }}/" method="get">
+           	 <input type="submit" value="Leave Experiment">
+            </form>
 
+            Submit your own data:<br><br>
+            <form action="/submit/{{ exp.pk }}/" method="post">
+            <table>
+            <tr>
+                <td>{{ exp.x_name }}:</td>
+                <td><input type="number" name="x"/></td>
+            </tr>
+            <tr>
+                <td>{{ exp.y_name }}:</td>
+                <td><input type="number" name="y"/></td>
+            </tr>
+            <tr>
+                <td>Comments:</td>
+                <td><input type="text" name="comments"/></td>
+            </tr>
+            </table>
+            <br>
+            <input type="submit" value="Submit Data">
+            </form>
+        {% else %}
+            <form action="/join/{{ exp.pk }}/" method="get">
+            <input type="submit" value="Join Experiment">
+            </form>
+        {% endif %}
 
+        	
+    {% endif %}
+
+{% endif %}
+</div>
 {% endblock %}
