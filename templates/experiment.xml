@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<experiment id="{{ exp.pk }}">
+	<upvotes>{{ upvotes }}</upvotes>
+	<downvotes>{{ downvotes }}</downvotes>
+	<total>{{ total }}</total>
+</experiment>
