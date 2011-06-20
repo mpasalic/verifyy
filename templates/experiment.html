@@ -4,17 +4,50 @@
 
 {% block extrahead %}
 <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
+<script language="javascript">
+function vote(val) {
+		
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange=function()
+	{
+	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			xml = xmlhttp.responseXML
+			total = xml.getElementsByTagName("total")[0]
+			document.getElementById("votetotal").innerHTML=total.childNodes[0].nodeValue;
+		}
+	}
+	  
+	if (val) {
+		xmlhttp.open("GET","/upvote/{{ exp.id }}/",true);
+	} else {
+		xmlhttp.open("GET","/downvote/{{ exp.id }}/",true);
+	}
+	xmlhttp.send();
+	
+}
+</script>
+
 {% endblock %}
 
 {% block content %}
 <div class="experiment_number experiment_vote" style="float: left;">
 	<div style="float: left; margin-left: 5px;">
-        {{ exp.vote }}
+        <span id="votetotal">{{ exp.votes }}</span>
         <div class="experiment_number_desc">votes</div>
     </div>
 <div style="float: left;">
-    	<div style="position:relative; left: 3px; top: 5px;"><a href="/upvote/{{ exp.pk }}/"><img src="/static/images/uparrow.png" /></a></div>
-   	<div style="position:relative; left: 3px; top: 13px;"><a href="/downvote/{{ exp.pk }}/"><img src="/static/images/downarrow.png" /></a></div>
+    	<div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
+   	<div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
   </div>
 </div>
 

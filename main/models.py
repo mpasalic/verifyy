@@ -11,8 +11,14 @@ class Experiment(models.Model):
 	y_control = models.TextField()
 	created = models.DateTimeField(auto_now=True)
 	user = models.ForeignKey(User)
-	vote = models.IntegerField()
 	
+	def votes(self):
+		upvotes = self.vote_set.filter( vote=True).count()
+		downvotes = self.vote_set.filter( vote=False).count()
+		
+		total = (upvotes - downvotes)
+		return total
+		
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 		
@@ -20,6 +26,10 @@ class Subscription(models.Model):
 	user = models.ForeignKey(User)
 	experiment = models.ForeignKey(Experiment)
 	
+class Vote(models.Model):
+	user = models.ForeignKey(User)
+	experiment = models.ForeignKey(Experiment)
+	vote = models.BooleanField()
 
 class Data(models.Model):
 	x = models.IntegerField()

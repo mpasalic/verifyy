@@ -1,5 +1,5 @@
 # Create your views here.
-from main.models import Experiment, Subscription, Data
+from main.models import Experiment, Subscription, Data, Vote
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -53,6 +53,8 @@ def experiment(request, exp_id):
 		sub = Subscription.objects.get(experiment = exp, user = request.user)
 	except (Subscription.DoesNotExist):
 		sub = False
+	
+	vote = exp.votes()
 	
 	return render_to_response('experiment.html', {'exp': exp, 'request': request, 'user_data': data, 'subscription': sub})
 
@@ -142,4 +144,29 @@ def user(request, username):
 	for sub in subs:
 		exp.append(sub.experiment)
 	return render_to_response('user.html', { 'user': user, 'list': exp, 'data': data, 'request': request })
+
+def upvote(request, exp_id):
+	return vote(request, exp_id, True)
+def downvote(request, exp_id):
+	return vote(request, exp_id, False)
+
+def vote(request, exp_id, voting):
+	user = request.user
 	
+	if not user.is_authenticated():
+		return login(request)
+	
+	exp = get_object_or_404(Experiment, pk=exp_id)
+	try:
+		vote = Vote.objects.get( user=user, experiment=exp )
+		vote.vote = voting
+		vote.save()
+	except (Vote.DoesNotExist):
+		vote = Vote(user=user, experiment=exp, vote=voting)
+		vote.save()
+	
+	upvotes = Vote.objects.all().filter( experiment=exp, vote=True).count()
+	downvotes = Vote.objects.all().filter( experiment=exp, vote=False).count()
+	total = upvotes - downvotes
+	
+	return render_to_response('experiment.xml', { 'upvotes': upvotes, 'downvotes': downvotes, 'total': total,'exp': exp, 'request': request }, mimetype="application/xml")
