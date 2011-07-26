@@ -1,0 +1,32 @@
+
+
+<h1>Experiment</h1>
+How does <input name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)"> affect <input name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)">?<br>
+
+<h2>Experiment description</h2>
+<textarea name="desc" rows="10" cols="80">{{ exp.description }}</textarea><br><br>
+
+<h2>Measurements</h2>
+
+<span name="x" class="experiment_name"></span> is measured in units of 
+<input name="xunits" type="text" value="{{ exp.x_units }}"><br>
+<span name="y" class="experiment_name"></span> is measured in units of 
+<input name="yunits" type="text" value="{{ exp.y_units }}"><br><br>
+
+How is <span name="x" class="experiment_name">{{ exp.x_name }}</span> controlled?<br>
+<textarea name="xdesc" rows="5" cols="80">{{ exp.x_control }}</textarea><br>
+
+How is <span name="y" class="experiment_name">{{ exp.y_name }}</span> measured?<br>
+<textarea name="ydesc" rows="5" cols="80">{{ exp.y_control }}</textarea><br><br>
+<!--
+<h2>Duration:</h2>        
+The experiment will run until:<br>
+<input type="radio" name="duration_type" checked><input name="num_days" type="text" value="60"> days.</input><br>
+<input type="radio" name="duration_type"><input name="num_results" type="text" value="100"> results collected.</input><br>
+<input type="radio" name="duration_type"> forever.</input><br><br>
+
+<b>Capcha</b>
+Enter the text in the image:<br>
+<img src="http://demo.templateplazza.net/soft_plazza/modules/mod_tploginxtd/assets/captcha.php?mid=133"/><br>
+<input type="text" value=""><br><br>
+-->
