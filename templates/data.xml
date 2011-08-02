@@ -14,7 +14,6 @@
 </categories>
 
 <dataSet seriesName='Equities' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
-<set id='INVEQ324_1' x='4.2' y='46.000' tooltext='4.2 hrs., 46.000%'/>
 
 {% for datapoint in exp.data_set.all %}
 	<set id="INVEQ324_{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comment }}"/>
