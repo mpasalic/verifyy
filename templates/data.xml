@@ -16,7 +16,7 @@
 <dataSet seriesName='Equities' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 
 {% for datapoint in exp.data_set.all %}
-	<set id="INVEQ324_{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comment }}"/>
+	<set id="INVEQ324_{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
 {% endfor %}
 
 </dataSet>
