@@ -27,25 +27,44 @@ def get_auth_token(request):
     return r.split('=')[1]
 
 def get_cached_token(request):
+    authed = not isinstance(request.user,AnonymousUser)
+    if not authed: return None
     res = list(FBAuth2.objects.filter(user=request.user))
     if not res: return None
-    return res[0].token
+    return res[-1].token
 
-def get_name(request):
-    at = get_cached_token(request)
+def get_name(at):
     if not at: return ""
     g = fb.GraphAPI(access_token = at )
     me = g.get_object('me')
     return me['first_name'] + ' ' + me['last_name']
 
+def put_wall(at, msg):
+    if not at: return None
+    g = fb.GraphAPI(access_token = at)
+    g.put_object("me", "feed",
+                message=msg,
+               name= 'VerifyY',
+               picture= 'http://myfriendfactory.appspot.com/static/images/wall.png',
+               link= 'http://www.verifyy.com',
+               actions= [
+                    {
+                       "name": "View Experiment",
+                       "link": "http://www.verifyy.com/"
+                    }])
+          
+    
+
 
 def msg(request):
     at = get_auth_token(request)
+    put_wall(at, "I just created an experiment on VerifyY, come check it out!")
 
     #return render_to_response('hello.html', {'code': get_auth_token(request)})
-    return render_to_response('hello.html', {'code': get_name(request)})
+    return render_to_response('hello.html', {'code': get_name(at)})
 
 def index(request):
+        at = get_cached_token(request)
 	authed = not isinstance(request.user,AnonymousUser)
 	if 'code' in request.GET and authed:
 		fba = FBAuth(code = request.GET['code'], user = request.user)
@@ -56,7 +75,7 @@ def index(request):
 		fba.save()
 
 	list = Experiment.objects.all().order_by('-created')[:5]
-	return render_to_response('index.html', { #'fullname': get_name(request), 
+	return render_to_response('index.html', { 'fullname': get_name(at), 
         'request': request, 'list':list })
 
 def login(request):
@@ -111,6 +130,7 @@ def experiment(request, exp_id):
 	
 	regression = LinearRegression()
 	regression.analyse(exp.data_set.all())
+
 	
 	return render_to_response('experiment.html', 
 							{'exp': exp, 
@@ -196,6 +216,10 @@ def create_experiment(request):
                 index_contents(exp.x_name)
                 index_contents(exp.y_name)
                 index_contents(exp.description)
+
+                at = get_auth_token(request)
+                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!"
+                     % (exp.y_name + " with " + exp.x_name) )
 
 		return redirect("/view/%d/" % (exp.id))
 		
