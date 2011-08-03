@@ -74,7 +74,7 @@ def index(request):
 		fba = FBAuth2(token = at, user = request.user)
 		fba.save()
 
-	list = Experiment.objects.all().order_by('-created')[:5]
+	list = Experiment.objects.all().order_by('-votetotal')[:5]
 	return render_to_response('index.html', {# 'fullname': get_name(at), 
         'request': request, 'list':list })
 
