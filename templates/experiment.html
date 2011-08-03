@@ -203,8 +203,9 @@ function analysis(url) {
     
     {% if user_data or subscription %}
     	<thead>
-        	<th>{{ exp.x_name }}</th>
-            <th>{{ exp.y_name }}</th>
+        	<th>{{ exp.x_name }}<br />({{ exp.x_units}})</th>
+            <th>{{ exp.y_name }}<br />({{ exp.y_units}})</th>
+            <th>Comments</th>
         </thead>
     {% endif %}
     
@@ -224,7 +225,7 @@ function analysis(url) {
       	<tr>
         	<td><input type="number" name="x"/></td>
             <td><input type="number" name="y"/></td>
-            <td><textarea name="comments"  onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Comments</textarea></td>
+            <td><textarea name="comments" onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }"></textarea></td>
         </tr>
     </table>
     <input type="submit" value="Add Data Point">
