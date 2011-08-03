@@ -15,7 +15,7 @@ import urllib2
 import re
 import main.facebook as fb
 
-def auth(request):
+def authCheck(request):
     authed = not isinstance(request.user,AnonymousUser)
     return render_to_response('auth.html', {'authed': authed, 'user': request.user} )
 
