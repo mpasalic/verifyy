@@ -24,7 +24,7 @@ def get_auth_token(request):
     if not res: return None
     code = res[0].code
 
-    r = urllib2.urlopen("https://graph.facebook.com/oauth/access_token?client_id=205425319498174&redirect_uri=http://localhost:8000/&client_secret=1a5aa67a3a7f8bbe40422a8d01445e82&code=%s" % code).read()
+    r = urllib2.urlopen("https://graph.facebook.com/oauth/access_token?client_id=205425319498174&redirect_uri=http://www.verifyy.com/&client_secret=1a5aa67a3a7f8bbe40422a8d01445e82&code=%s" % code).read()
     return r.split('=')[1]
 
 def get_cached_token(request):
