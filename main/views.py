@@ -10,14 +10,55 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib import auth
 from exceptions import ValueError
-
 from django.db.models import Avg, Max, Min, Count, Q
+import urllib2
 import re
+import main.facebook as fb
+
+def auth(request):
+    authed = not isinstance(request.user,AnonymousUser)
+    return render_to_response('auth.html', {'authed': authed, 'user': request.user} )
+
+def get_auth_token(request):
+    res = FBAuth.objects.filter(user=request.user)
+    if not res: return None
+    code = res[0].code
+
+    r = urllib2.urlopen("https://graph.facebook.com/oauth/access_token?client_id=205425319498174&redirect_uri=http://localhost:8000/&client_secret=1a5aa67a3a7f8bbe40422a8d01445e82&code=%s" % code).read()
+    return r.split('=')[1]
+
+def get_cached_token(request):
+    res = list(FBAuth2.objects.filter(user=request.user))
+    if not res: return None
+    return res[0].token
+
+def get_name(request):
+    at = get_cached_token(request)
+    if not at: return ""
+    g = fb.GraphAPI(access_token = at )
+    me = g.get_object('me')
+    return me['first_name'] + ' ' + me['last_name']
+
+
+def msg(request):
+    at = get_auth_token(request)
+
+    #return render_to_response('hello.html', {'code': get_auth_token(request)})
+    return render_to_response('hello.html', {'code': get_name(request)})
 
 def index(request):
+	authed = not isinstance(request.user,AnonymousUser)
+	if 'code' in request.GET and authed:
+		fba = FBAuth(code = request.GET['code'], user = request.user)
+		fba.save()
+
+		at = get_auth_token(request)
+		fba = FBAuth2(token = at, user = request.user)
+		fba.save()
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
-	return render_to_response('index.html', { 'request': request, 'list':list })
+	return render_to_response('index.html', { #'fullname': get_name(request), 
+        'request': request, 'list':list })
 
 def login(request):
 	if (request.method == 'GET'):
