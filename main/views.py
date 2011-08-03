@@ -1,5 +1,5 @@
 # Create your views here.
-from main.models import Experiment, Subscription, Data, Vote, DiscussionMessage
+from main.models import *
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -9,6 +9,7 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.contrib import auth
 from exceptions import ValueError
 from django.db.models import Q
+import re
 
 def index(request):
 
@@ -109,12 +110,16 @@ def data(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
 	return render_to_response('data.xml', {'exp': exp, 'request': request }, mimetype="application/xml")
 
+def tokenize(c):
+    splitter = re.compile(r'\W+')
+    return map(unicode.lower, splitter.split(c))
+
 def create_experiment(request):
 	if not request.user.is_authenticated():
 		return login(request)
 
-	exp = Experiment()
 	try:
+                exp = Experiment()
 		exp.x_name = request.POST['x']
 		exp.y_name = request.POST['y']
 		exp.description = request.POST['desc']
@@ -124,11 +129,22 @@ def create_experiment(request):
 		exp.y_control = request.POST['ydesc']
 		exp.user = request.user
 		exp.vote = 0
-		
+
 	except (KeyError):
 		return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
 	else:
 		exp.save()
+
+                def index_contents(c):
+                    for w in tokenize(c):
+                        ind = Index()
+                        ind.doc = exp
+                        ind.word = w
+                        ind.save()
+                index_contents(exp.x_name)
+                index_contents(exp.y_name)
+                index_contents(exp.description)
+
 		return redirect("/view/%d/" % (exp.id))
 		
 def join(request, exp_id):
@@ -156,8 +172,12 @@ def search(request):
 	q = ""
 	if 'q' in request.GET:
 		q = request.GET['q']
-		found_entries = list(Experiment.objects.all().filter( y_name=q )[:10])
-		found_entries = found_entries + list(Experiment.objects.all().filter(x_name=q)[:10])
+
+                indexes = set()
+                for w in tokenize(q):
+                    indexes.update(map(lambda r: r.doc, Index.objects.all().filter(word=w)))
+
+		found_entries = indexes
 	else:
 		found_entries = ''
 	return render_to_response('search.html', { 'search': q, 'list': found_entries, 'request': request })
