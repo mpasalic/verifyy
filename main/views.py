@@ -12,6 +12,7 @@ from django.contrib import auth
 from exceptions import ValueError
 
 from django.db.models import Avg, Max, Min, Count, Q
+import re
 
 def index(request):
 

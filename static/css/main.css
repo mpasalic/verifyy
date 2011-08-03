@@ -181,3 +181,9 @@ a:active {color: #888;}
 .experiment_dividor {
 	border-bottom: #999 1px dotted;
 }
+
+.boxed {
+	border: 1px #999 solid;
+	padding: 10px;
+	padding-top: 2px;
+}
