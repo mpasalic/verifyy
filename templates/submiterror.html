@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Experiment{% endblock %}
+
+{% block extrahead %}
+<script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1>{{ exp.y_name }} with {{ exp.x_name }}</h1>
+
+<h3>Description</h3>    
+
+<div style="border:1px solid grey; padding: 10px 10px">
+{{ exp.description }}
+</div>
+
+<br>
+
+<h2>Submit Data</h2>
+
+<div style="border:1px solid grey; padding: 10px 10px">
+Unfortunately, the data you entered could not be processed.<br>
+{{ message }}
+</div>
+
+
+{% endblock %}

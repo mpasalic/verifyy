@@ -1,11 +1,13 @@
 # Create your views here.
-from main.models import Experiment, Subscription, Data, Vote, Friend
+
+from main.models import Experiment, Subscription, Data, Vote, Friend, DiscussionMessage
+from main.analysis import Regression, LinearRegression
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib import auth
 from exceptions import ValueError
 from django.db.models import Avg, Max, Min, Count
@@ -38,8 +40,13 @@ def register(request):
 		return render_to_response('register.html', { 'request': request })
 	elif (request.method == 'POST'):
 		try:
-			user = User.objects.create_user(request.POST['username'], request.POST['email'], request.POST['password'])
-			user.save();
+			userName = request.POST['username']
+			existingUser = User.objects.filter(username = userName)
+			if len(existingUser) == 0:
+				user = User.objects.create_user(userName, request.POST['email'], request.POST['password'])
+				user.save();
+			else:
+				return render_to_response('register.html', { 'error_message' : "Username is taken",  'request': request  })
 		except (KeyError):
 			return render_to_response('register.html', { 'error_message' : "Please fill out all fields",  'request': request  })
 		else:
@@ -48,6 +55,7 @@ def register(request):
 def experiment(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
 	data = Data.objects.filter(experiment = exp, user = request.user)
+	comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
 	
 	sub = False
 	try:
@@ -58,7 +66,29 @@ def experiment(request, exp_id):
 		
 	vote = exp.votes()
 	
-	return render_to_response('experiment.html', {'exp': exp, 'request': request, 'user_data': data, 'subscription': sub})
+
+	
+	return render_to_response('experiment.html', 
+							{'exp': exp, 
+							'request': request, 
+							'user_data': data, 
+							'subscription': sub,
+							#'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
+							'comments': comm})
+
+
+def postcomm(request, exp_id):
+	authed = not isinstance(request.user,AnonymousUser)
+	if(request.method == 'POST' and authed):		
+		exp = get_object_or_404(Experiment, pk = exp_id)
+		msgTitle = request.POST['title']
+		msgBody = request.POST['message']
+		
+		if msgBody != "" :
+			msg = DiscussionMessage(experiment = exp, user=request.user, title=msgTitle, message=msgBody)
+			msg.branch = 0
+			msg.save()
+	return redirect("/view/%d/" % (exp.id));
 
 def submit_error(var_name):
 	return "'%s' must be a whole number." % var_name;
@@ -129,9 +159,16 @@ def data(request, exp_id):
 	
 	for i in range(10):
 		xaxis.append( ((xmax - xmin)/10.0)*(i) + xmin )
+		
+	regression = LinearRegression()
+	
+	try:
+		regression.analyse(data)
+	except (ZeroDivisionError):
+		regression = False
 	
 	return render_to_response('data.xml', {'xaxis': xaxis, 'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax,
-		'exp': exp, 'data':data, 'request': request }, mimetype="application/xml")
+		'exp': exp, 'data':data, 'regression': regression, 'request': request }, mimetype="application/xml")
 
 def edit(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
@@ -196,10 +233,12 @@ def unjoin(request, exp_id):
 	return redirect("/view/%d/" % (exp.id))
 
 def search(request):
+	# TODO: multiple search pages!
 	q = ""
 	if 'q' in request.GET:
 		q = request.GET['q']
-		found_entries = Experiment.objects.all().filter( y_name=q )
+		found_entries = list(Experiment.objects.all().filter( y_name=q )[:10])
+		found_entries = found_entries + list(Experiment.objects.all().filter(x_name=q)[:10])
 	else:
 		found_entries = ''
 	return render_to_response('search.html', { 'search': q, 'list': found_entries, 'request': request })

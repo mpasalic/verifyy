@@ -6,10 +6,9 @@
 {% endfor %}
 </categories>
 
-
 <dataSet seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 {% for datapoint in data %}
-	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comments }}"/>
+	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
 {% endfor %}
 </dataSet>
 
@@ -27,5 +26,14 @@
 	<ymin>{{ ymin }}</ymin>
 	<xmax>{{ xmax }}</xmax>
 	<ymax>{{ ymax }}</ymax>
+
+	<regression>
+{% if regression %}
+		{{ regression.summary }}
+{% else %}
+	Unable to find any correlation. 
+{% endif %}
+	</regression>
+
 </extra>
 </chart>

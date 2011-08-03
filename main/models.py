@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime    
+from datetime import datetime 
+from django.db.models.fields.related import ForeignKey
 
 class Experiment(models.Model):
 	x_name = models.CharField(max_length=256)
@@ -26,6 +27,16 @@ class Experiment(models.Model):
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 		
+class DiscussionMessage(models.Model):
+	experiment = models.ForeignKey(Experiment)
+	user = models.ForeignKey(User)
+	#order by tree branch / timestamp allows to get the tree
+	tstamp = models.DateTimeField(auto_now=True)
+	branch = models.IntegerField()
+	title = models.CharField(max_length=256)
+	message = models.TextField()
+	
+	
 class Subscription(models.Model):
 	user = models.ForeignKey(User)
 	experiment = models.ForeignKey(Experiment)

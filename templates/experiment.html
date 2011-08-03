@@ -2,6 +2,7 @@
 
 {% block title %}Experiment{% endblock %}
 
+
 {% block extrahead %}
 <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
 <script language="javascript">
@@ -32,6 +33,35 @@ function vote(val) {
 	} else {
 		xmlhttp.open("GET","/downvote/{{ exp.id }}/",true);
 	}
+	xmlhttp.send();
+	
+}
+
+function analysis(url) {
+		
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	document.getElementById("regression_summary").innerHTML = "Loading data...";
+	
+	xmlhttp.onreadystatechange=function()
+	{
+	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			xml = xmlhttp.responseXML
+			total = xml.getElementsByTagName("regression")[0]
+			document.getElementById("regression_summary").innerHTML=total.childNodes[0].nodeValue;
+		}
+	}
+
+	xmlhttp.open("GET",url,true);
 	xmlhttp.send();
 	
 }
@@ -102,6 +132,10 @@ function vote(val) {
 
 <div id="chartdiv" style="width: 740px; height: 400px"></div>
 
+<div id="regression" style="boxed">
+    <h2>Analysis:</h2>
+    <div id="regression_summary"></div>
+</div>
 
 <div id="filter_selector" style="text-align: center; margin-top: 20px;">
 	<a id="filter_me" class="filter filter_unselected" href="" onclick="setfilter(1); return false;">me</a>
@@ -114,6 +148,7 @@ function vote(val) {
 	
 	function setfilter(filter) {
 		chart.setXMLUrl("/data/{{ exp.pk }}/?filter="+ filter);
+		analysis("/data/{{ exp.pk }}/?filter="+ filter);
 		
 		var me = document.getElementById("filter_me");
 		var friend = document.getElementById("filter_friends");
@@ -139,14 +174,15 @@ function vote(val) {
  	chart.render("chartdiv");
 	
 </script>
+<br>
 
 <br />
 {% if not request.user.is_authenticated %}
-Login to submit data.
+<a href="/login">Login</a> to submit data and comments.
 {% else %}
     
     {% if user_data %}
-        Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
+	Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
         {% for data in user_data %}
             {{ exp.x_name }}: {{ data.x }}, {{ exp.y_name }}: {{ data.y }}<br>
         {% endfor %}
@@ -180,4 +216,42 @@ Login to submit data.
 
 {% endif %}
 
+</div>
+
+<h2>Experiment Discussion</h2>
+{% for cmnt in comments %}
+	<div style="border:1px solid grey; padding: 10px 10px">
+	<table>
+	{% if not cmnt.title == "" %}
+	<tr><td>
+		<b>{{ cmnt.title }}</b><br/>
+	</td></tr>
+	{% endif %}
+	<tr><td><i>By {{cmnt.user.username}} at {{ cmnt.tstamp }}</i> </td></tr>
+	<tr><td>{{ cmnt.message }}</td></tr>
+	<!--  TODO: Threaded commenting	 -->
+	<!-- <tr><td><button type="button" id="Reply">Reply</button></td></tr> -->
+	</table>
+	
+ 	</div>
+{% empty %}
+No comments submitted.
+{% endfor %}
+
+<div style="" width="100%">
+    {% if request.user.is_authenticated %}
+
+        <form action="/postcomm/{{ exp.pk }}/" method="post">
+        <table width="100%">
+            <tr><td width="100%">Title: &nbsp; &nbsp; <input type="text" name="title"></input></td></tr>
+            <tr><td width="100%"><textarea name="message" rows="4" cols="80">Enter your comment</textarea></td></tr>
+        </table>
+        <br>
+        <input type="submit" value="Comment!">
+        </form>
+            
+	{% endif %}	
+</div>
+
 {% endblock %}
+
