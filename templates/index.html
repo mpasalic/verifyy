@@ -1,5 +1,19 @@
 {% extends "base.html" %}
 
+<!--
+<script src="http://connect.facebook.net/en_US/all.js"></script>
+<script>
+  FB.init({
+    appId: '205425319498174',
+    status : true, // check login status
+    cookie : true, // enable cookies to allow the server to access the session
+    xfbml  : true, // parse XFBML
+    //channelURL : 'http://WWW.MYDOMAIN.COM/channel.html', // channel.html file
+    oauth  : true // enable OAuth 2.0
+  });
+</script>
+-->
+
 {% block pagetitle %}
 Welcome!
 {% endblock %}
@@ -11,6 +25,8 @@ Welcome!
 {% endblock %}
 
 {% block content %}
+
+<b>Welcome {{fullname}}!</b><br /> <br />
 
 <div class="space" style="min-height: 10px"></div>
 <div style="width: 500px; margin-left: auto; margin-right: auto;">
@@ -24,8 +40,10 @@ Welcome!
     </div>
 </div>
 <div class="space" style="min-height: 10px"></div>
+ 
 <h2>Popular experiments...</h2>
 <div>
+
 {% include "list.html" with no_results_message="No experiments available yet." %}
 </div>
 
