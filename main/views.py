@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.shortcuts import redirect
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib import auth
 from exceptions import ValueError
 from django.db.models import Q
@@ -48,11 +48,13 @@ def register(request):
 def experiment(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
 	data = Data.objects.filter(experiment = exp, user = request.user)
+	sub = not isinstance(request.user,AnonymousUser)
 	
-	try:
-		sub = Subscription.objects.get(experiment = exp, user = request.user)
-	except (Subscription.DoesNotExist):
-		sub = False
+	if sub:
+		try:
+			sub = Subscription.objects.get(experiment = exp, user = request.user)
+		except (Subscription.DoesNotExist):
+			sub = False
 	
 	vote = exp.votes()
 	
