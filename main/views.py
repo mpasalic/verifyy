@@ -128,11 +128,8 @@ def experiment(request, exp_id):
 		
 	vote = exp.votes()
 	
-<<<<<<< HEAD
 	regression = LinearRegression()
 	regression.analyse(exp.data_set.all())
-=======
->>>>>>> c7a60d016fdb3a3948e51ef693c0b9542a6659f1
 
 	
 	return render_to_response('experiment.html', 
