@@ -36,7 +36,54 @@ function vote(val) {
 	xmlhttp.send();
 	
 }
+
+function analysis(url) {
+		
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	document.getElementById("regression_summary").innerHTML = "Loading data...";
+	
+	xmlhttp.onreadystatechange=function()
+	{
+	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			xml = xmlhttp.responseXML
+			total = xml.getElementsByTagName("regression")[0]
+			document.getElementById("regression_summary").innerHTML=total.childNodes[0].nodeValue;
+		}
+	}
+
+	xmlhttp.open("GET",url,true);
+	xmlhttp.send();
+	
+}
 </script>
+<style type="text/css">
+#filter_selector {
+	font-size: 14pt;
+}
+
+.filter {
+	padding: 0px 5px 0px 5px;
+}
+
+.filter_selected {
+	background-color:#EEE;
+}
+
+.filter_unselected {
+	
+}
+
+</style>
 
 {% endblock %}
 
@@ -56,142 +103,170 @@ function vote(val) {
 <!-- AddThis Button END -->
 </div>
 
-<div class="experiment_number experiment_vote" style="float: left;">
-	<div style="float: left; margin-left: 5px;">
-        <span id="votetotal">{{ exp.votes }}</span>
-        <div class="experiment_number_desc">votes</div>
+<div class="" style="float: left;">
+	<div class="experiment_number experiment_vote">
+        <div style="float: left; margin-left: 5px;">
+            <span id="votetotal">{{ exp.votes }}</span>
+            <div class="experiment_number_desc">votes</div>
+        </div>
+        <div style="float: left;">
+            <div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
+            <div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
+        </div>
     </div>
-<div style="float: left;">
-    	<div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
-   	<div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
-  </div>
+        <div style="text-align: left; margin-top: 10px; margin-left: 5px;">
+{% if subscription %}
+		<a href="/unjoin/{{exp.pk}}/">leave</a><br />
+{% else %}
+        <a href="/join/{{exp.pk}}/">join</a><br />
+{% endif %}
+		<a href="/report/{{exp.pk}}/">report</a><br />
+{% if exp.user == request.user or request.user.is_superuser %}
+        <a href="/edit/{{exp.pk}}/">edit</a><br />
+{% endif %}
+    </div>
+	
 </div>
 
 <div style="float: left; max-width: 650px; margin-left: 10px">
-    <h1 style="margin-top: 0px;">{{ exp.y_name }} with {{ exp.x_name }}</h1>
-    {{ exp.description }}
-  
+    <h1 style="margin-top: 0px; margin-bottom: 0px; padding-bottom:0px;"><span class="y_name">{{ exp.y_name }}</span> <span class="with" style=" ">with</span> <span class="x_name">{{ exp.x_name }}</span></h1> 
+<span class="demphasize">created by</span> <a href="/user/{{ exp.user.username }}/">{{ exp.user.username }}</a><br />
+{{ exp.description }} 
+
+
+<div style=" padding: 10px 0px">
+    <span class="emphasize">{{ exp.y_name }}</span> measured in <span class="emphasize">{{ exp.y_units }}</span>.<br>
+    {{ exp.y_control }}<br><br>
+    
+    <span class="emphasize">{{ exp.x_name }}</span> is measured in <span class="emphasize">{{ exp.x_units }}</span>.<br>
+    {{ exp.x_control }}
+</div> 
+
 </div>
 <p style="clear: both"></p>
 
-<div style=" padding: 10px 10px">
-<span class="" style="font-weight: bold; font-size: 11pt;">{{ exp.y_name }}</span> measured in {{ exp.y_units }}.<br>
-{{ exp.y_control }}<br><br>
+<div id="chartdiv" style="width: 740px; height: 400px"></div>
 
-<span class="" style="font-weight: bold; font-size: 11pt;">{{ exp.x_name }}</span> is measured in {{ exp.x_units }}.<br>
-{{ exp.x_control }}
-</div> 
-
-<br>
-
-    
-
-<h2>Experiment data</h2>
-<div id="chartdiv" align="center"> FusionCharts. </div>
-<script type="text/javascript">
-	var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "560", "400", "0", "0");
-	
-	chart.setXMLUrl("/data/{{ exp.pk }}/");		   
- 	chart.render("chartdiv");
-</script>
-<br>
-<div id="regression" style="border:1px solid grey; padding: 10px 10px">
-Analysis:<br>
-{{ regression.summary }}
+<br />
+<div id="regression" class="boxed" style="margin-left: auto; margin-right: auto; width: 400px;">
+    <h2>Analysis</h2>
+    <div id="regression_summary"></div>
 </div>
 
+<div id="filter_selector" style="text-align: center; margin-top: 20px;">
+	<a id="filter_me" class="filter filter_unselected" href="" onclick="setfilter(1); return false;">me</a>
+    <a id="filter_friends" class="filter filter_unselected" href="" onclick="setfilter(2); return false;">friends</a>
+    <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setfilter(0); return false;">everyone</a>
+</div>
 
-<h2>Your Data</h2>
-<div style="border:1px solid grey; padding: 10px 10px">
+<script type="text/javascript">
+	var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "740", "400", "0", "0");
+	
+	function setfilter(filter) {
+		chart.setXMLUrl("/data/{{ exp.pk }}/?filter="+ filter);
+		analysis("/data/{{ exp.pk }}/?filter="+ filter);
+		
+		var me = document.getElementById("filter_me");
+		var friend = document.getElementById("filter_friends");
+		var everyone = document.getElementById("filter_everyone");
+
+		me.className = "filter filter_unselected";
+		friend.className = "filter filter_unselected";
+		everyone.className = "filter filter_unselected";
+		
+						
+		if (filter == 0) {
+			everyone.className = "filter filter_selected";
+		} else if (filter == 1) {
+			me.className = "filter filter_selected";
+		} else if (filter == 2) {
+			friend.className = "filter filter_selected"
+		}
+		
+		
+		
+	}
+	setfilter(0);
+ 	chart.render("chartdiv");
+	
+</script>
+<br>
+
+<br />
 {% if not request.user.is_authenticated %}
-Login to submit data.
+<a href="/login">Login</a> to submit data and comments.
 {% else %}
+	<h2>Data</h2>
+    <form action="/submit/{{ exp.pk }}/" method="post">
+    
+    <table border="0" style="" cellspacing="0">
+    
+    {% if user_data or subscription %}
+    	<thead>
+        	<th>{{ exp.x_name }}</th>
+            <th>{{ exp.y_name }}</th>
+        </thead>
+    {% endif %}
     
     {% if user_data %}
-        Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
+    	
         {% for data in user_data %}
-            {{ exp.x_name }}: {{ data.x }}, {{ exp.y_name }}: {{ data.y }}<br>
+        	<tr>
+            	<td align="center">{{ data.x }}</td>
+                <td align="center">{{ data.y }}</td>
+                <td align="center">{{ data.comments }}</td>
+            </tr>
         {% endfor %}
-    {% else %}
-    
-        {% if subscription %}
-      
-            <form action="/unjoin/{{ exp.pk }}/" method="get">
-           	 <input type="submit" value="Leave Experiment">
-            </form>
-
-            Submit your own data:<br><br>
-            <form action="/submit/{{ exp.pk }}/" method="post">
-            <table>
-            <tr>
-                <td>{{ exp.x_name }}:</td>
-                <td><input type="number" name="x"/></td>
-            </tr>
-            <tr>
-                <td>{{ exp.y_name }}:</td>
-                <td><input type="number" name="y"/></td>
-            </tr>
-            <tr>
-                <td>Comments:</td>
-                <td><input type="text" name="comments"/></td>
-            </tr>
-            </table>
-            <br>
-            <input type="submit" value="Submit Data">
-            </form>
-        {% else %}
-            <form action="/join/{{ exp.pk }}/" method="get">
-            <input type="submit" value="Join Experiment">
-            </form>
-        {% endif %}
-
         	
     {% endif %}
-
+    
+    {% if subscription %}
+      	<tr>
+        	<td><input type="number" name="x"/></td>
+            <td><input type="number" name="y"/></td>
+            <td><textarea name="comments"  onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Comments</textarea></td>
+        </tr>
+    </table>
+    <input type="submit" value="Add Data Point">
+    {% else %}
+    </table>
+     	Join experiment to submit data.
+    {% endif %}
+	
+            
+	</form>
 {% endif %}
+
 </div>
 
 <h2>Experiment Discussion</h2>
 {% for cmnt in comments %}
-	<div style="border:1px solid grey; padding: 10px 10px">
-	<table>
-	{% if not cmnt.title == "" %}
-	<tr><td>
-		<b>{{ cmnt.title }}</b><br/>
-	</td></tr>
-	{% endif %}
-	<tr><td><i>By {{cmnt.user.username}} at {{ cmnt.tstamp }}</i> </td></tr>
-	<tr><td>{{ cmnt.message }}</td></tr>
-	<!--  TODO: Threaded commenting	 -->
-	<!-- <tr><td><button type="button" id="Reply">Reply</button></td></tr> -->
-	</table>
-	
- 	</div>
-{% endfor %}
+	<div style="">
+    	<a href="/user/{{cmnt.user.username}}/">{{cmnt.user.username}}</a><span style="color:#666"> posted {{ cmnt.tstamp }}</span>
+        <div>
+          {{ cmnt.message }}
+		</div>
+	</div>
+    <br />
 
-<h2>Post Comments</h2>
-<div style="border:1px solid grey; padding: 10px 10px" width="100%">
-    {% if not request.user.is_authenticated %}
-		<p>Login to post comments.</p>
-	{% else %}
-		{% if not authed %}
-			<p>Login to post comments.</p>
-		{% else %}
-		
-			<form action="/postcomm/{{ exp.pk }}/" method="post">
-            <table width="100%">
-            	<tr><td width="100%">Title: &nbsp; &nbsp; <input type="text" name="title"></input></td></tr>
-            	<tr><td width="100%"><textarea name="message" rows="4" cols="80">Enter your comment</textarea></td></tr>
-            </table>
-            <br>
-            <input type="submit" value="Comment!">
-            </form>
-            
-		{% endif %}
+{% empty %}
+No comments submitted.
+{% endfor %}
+<br />
+
+<div style="" width="100%">
+    {% if request.user.is_authenticated %}
+  <div width="400px">
+        <form action="/postcomm/{{ exp.pk }}/" method="post">
+       
+          <input type="hidden" name="title" value=""></input>
+       	  <textarea name="message" rows="3" cols="60" onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Enter your comment</textarea><br />
+       	  <input type="submit" value="Submit">
+        
+    	</form>
+    </div>
 	{% endif %}	
 </div>
 
 {% endblock %}
-
-
 

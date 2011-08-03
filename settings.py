@@ -21,7 +21,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_DOC_ROOT = PROJECT_ROOT + '/static/'
 
 INSTALLED_APPS = (
-#    'django.contrib.admin',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -47,6 +47,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.request',
     'django.core.context_processors.media',
+	'django.contrib.messages.context_processors.messages'
 )
 
 # This test runner captures stdout and associates tracebacks with their

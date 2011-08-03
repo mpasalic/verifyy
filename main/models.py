@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime 
 from django.db.models.fields.related import ForeignKey
-
 
 class Experiment(models.Model):
 	x_name = models.CharField(max_length=256)
@@ -21,6 +21,9 @@ class Experiment(models.Model):
 		total = (upvotes - downvotes)
 		return total
 		
+	votetotal = models.IntegerField(default=0)
+	
+
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 
@@ -44,11 +47,18 @@ class DiscussionMessage(models.Model):
 class Subscription(models.Model):
 	user = models.ForeignKey(User)
 	experiment = models.ForeignKey(Experiment)
+	created = models.DateTimeField(auto_now=True, default=datetime.now())
 	
 class Vote(models.Model):
 	user = models.ForeignKey(User)
 	experiment = models.ForeignKey(Experiment)
 	vote = models.BooleanField()
+	created = models.DateTimeField(auto_now=True, default=datetime.now())
+	
+class Friend(models.Model):
+	user = models.ForeignKey(User)
+	friend = models.ForeignKey(User)
+	created = models.DateTimeField(auto_now=True, default=datetime.now())
 
 class Index(models.Model):
         word = models.CharField(max_length=256)
@@ -62,7 +72,7 @@ class Data(models.Model):
 	y = models.IntegerField()
 	comments = models.TextField()
 	experiment = models.ForeignKey(Experiment)
-	created = models.DateTimeField(auto_now=True)
+	created = models.DateTimeField(auto_now=True, default=datetime.now())
 	user = models.ForeignKey(User)
 
 	def __unicode__(self):

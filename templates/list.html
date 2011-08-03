@@ -22,7 +22,7 @@
         -->
     </div>
     <div class="experiment_summary" style="float: left; max-width: 650px;">
-        <div class="experiment_name"><a href="/view/{{ exp.pk }}"><span class="y_name">{{ exp.y_name }}</span> with <span class="x_name">{{ exp.x_name }}</span></a></div>
+        <div class="experiment_name"><a href="/view/{{ exp.pk }}"><span class="y_name">{{ exp.y_name }}</span> <span class="with">with</span> <span class="x_name">{{ exp.x_name }}</span></a></div>
     	<div class="experiment_desc">{{ exp.description }}</div>
         <div class="experiment_extra"> <strong>{{ exp.subscription_set.all.count }}</strong> user(s) &nbsp;&nbsp;&nbsp; <strong>{{ exp.data_set.all.count }}</strong> data point(s) </div>
     </div>

@@ -2,9 +2,11 @@
 
 /* Main formatting */
 h1 {
-	font-size: 15pt;
+	font-size: 17pt;
 	color: #222222;
 	margin-bottom: 5px;
+	
+	font-family: Tahoma, Geneva, sans-serif;
 }
 
 h2 {
@@ -25,6 +27,15 @@ a:link {color: #888; text-decoration: none; }
 a:visited {color: #888;}
 a:hover {color: #444;}
 a:active {color: #888;}
+
+.emphasize {
+
+	font-weight: bold;
+}
+
+.demphasize {
+	color: #AAA;
+}
 
 /* Content formatting */
 
@@ -125,11 +136,19 @@ a:active {color: #888;}
 	font-size: 14pt;
 	font-weight:bold;
 }
+
+
 .x_name, .y_name {
+	font-weight: bold;
+	
+}
+
+.with {
+	
 }
 
 .experiment_desc {
-	color:#666;
+	
 }
 
 .experiment_extra {
@@ -161,4 +180,10 @@ a:active {color: #888;}
 
 .experiment_dividor {
 	border-bottom: #999 1px dotted;
+}
+
+.boxed {
+	border: 1px #999 solid;
+	padding: 10px;
+	padding-top: 2px;
 }
