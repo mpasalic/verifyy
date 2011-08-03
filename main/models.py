@@ -53,6 +53,13 @@ class Friend(models.Model):
 	friend = models.ForeignKey(User)
 	created = models.DateTimeField(auto_now=True, default=datetime.now())
 
+class Index(models.Model):
+        word = models.CharField(max_length=256)
+	doc = models.ForeignKey(Experiment)
+
+	def __str__(self):
+		return self.word + " => " + str(self.doc.id)
+
 class Data(models.Model):
 	x = models.IntegerField()
 	y = models.IntegerField()

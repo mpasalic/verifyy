@@ -21,14 +21,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-<<<<<<< HEAD
 - kind: main_experiment
   properties:
   - name: __key__
     direction: desc
-=======
+
 - kind: main_discussionmessage
   properties:
   - name: experiment_id
   - name: branch
->>>>>>> 495fcca1267ffe98e672e9d8c43e6a58a8cd1fcc
