@@ -1,5 +1,6 @@
 # Create your views here.
 from main.models import Experiment, Subscription, Data, Vote, DiscussionMessage
+from main.analysis import Regression, LinearRegression
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -38,8 +39,13 @@ def register(request):
 		return render_to_response('register.html', { 'request': request })
 	elif (request.method == 'POST'):
 		try:
-			user = User.objects.create_user(request.POST['username'], request.POST['email'], request.POST['password'])
-			user.save();
+			userName = request.POST['username']
+			existingUser = User.objects.filter(username = userName)
+			if len(existingUser) == 0:
+				user = User.objects.create_user(userName, request.POST['email'], request.POST['password'])
+				user.save();
+			else:
+				return render_to_response('register.html', { 'error_message' : "Username is taken",  'request': request  })
 		except (KeyError):
 			return render_to_response('register.html', { 'error_message' : "Please fill out all fields",  'request': request  })
 		else:
@@ -60,6 +66,9 @@ def experiment(request, exp_id):
 	
 	vote = exp.votes()
 	
+	regression = LinearRegression()
+	regression.analyse(exp.data_set.all())
+	
 	return render_to_response('experiment.html', 
 							{'exp': exp, 
 							'request': request, 
@@ -67,7 +76,8 @@ def experiment(request, exp_id):
 							'subscription': sub,
 							'authed': authed, 
 							#'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
-							'comments': comm })
+							'comments': comm,
+							'regression': regression})
 
 
 def postcomm(request, exp_id):
