@@ -65,7 +65,6 @@ def msg(request):
     return render_to_response('hello.html', {'code': get_name(at)})
 
 def index(request):
-        at = get_cached_token(request)
 	authed = not isinstance(request.user,AnonymousUser)
 	if 'code' in request.GET and authed:
 		fba = FBAuth(code = request.GET['code'], user = request.user)
@@ -76,7 +75,7 @@ def index(request):
 		fba.save()
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
-	return render_to_response('index.html', { 'fullname': get_name(at), 
+	return render_to_response('index.html', {# 'fullname': get_name(at), 
         'request': request, 'list':list })
 
 def login(request):
