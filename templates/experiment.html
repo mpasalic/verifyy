@@ -79,6 +79,12 @@ function vote(val) {
 	chart.setXMLUrl("/data/{{ exp.pk }}/");		   
  	chart.render("chartdiv");
 </script>
+<br>
+<div id="regression" style="border:1px solid grey; padding: 10px 10px">
+Analysis:<br>
+{{ regression.summary }}
+</div>
+
 
 <h2>Your Data</h2>
 <div style="border:1px solid grey; padding: 10px 10px">
