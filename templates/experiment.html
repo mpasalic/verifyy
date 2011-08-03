@@ -196,40 +196,41 @@ function analysis(url) {
 {% if not request.user.is_authenticated %}
 <a href="/login">Login</a> to submit data and comments.
 {% else %}
+    <form action="/submit/{{ exp.pk }}/" method="post">
     
+    <table border="0" style="" cellspacing="0">
+    	<thead>
+        	<th>{{ exp.x_name }}</th>
+            <th>{{ exp.y_name }}</th>
+        </thead>
     {% if user_data %}
-	Your {% if user_data.size > 1 %}submissions{% else %}submission{% endif %}:<br>
+	<h2>Data</h2>
         {% for data in user_data %}
-            {{ exp.x_name }}: {{ data.x }}, {{ exp.y_name }}: {{ data.y }}<br>
+        	<tr>
+            	<td align="center">{{ data.x }}</td>
+                <td align="center">{{ data.y }}</td>
+                <td align="center">{{ data.comments }}</td>
+            </tr>
         {% endfor %}
         	
     {% endif %}
     
     {% if subscription %}
-      
-            <form action="/submit/{{ exp.pk }}/" method="post">
-            <table>
-            <tr>
-                <td>{{ exp.x_name }}:</td>
-                <td><input type="number" name="x"/></td>
-            </tr>
-            <tr>
-                <td>{{ exp.y_name }}:</td>
-                <td><input type="number" name="y"/></td>
-            </tr>
-            <tr>
-                <td>Comments:</td>
-                <td><textarea name="comments"></textarea></td>
-            </tr>
-            </table>
-            <br>
-            <input type="submit" value="Add Data Point">
-            </form>
+      	<tr>
+        	<td><input type="number" name="x"/></td>
+            <td><input type="number" name="y"/></td>
+            <td><textarea name="comments"></textarea></td>
+        </tr>
     
+    </table>
+    <input type="submit" value="Add Data Point">
     {% else %}
+    </table>
      	Join experiment to submit data.
     {% endif %}
-
+	
+            
+	</form>
 {% endif %}
 
 </div>
