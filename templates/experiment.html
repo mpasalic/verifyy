@@ -196,15 +196,20 @@ function analysis(url) {
 {% if not request.user.is_authenticated %}
 <a href="/login">Login</a> to submit data and comments.
 {% else %}
+	<h2>Data</h2>
     <form action="/submit/{{ exp.pk }}/" method="post">
     
     <table border="0" style="" cellspacing="0">
+    
+    {% if user_data or subscription %}
     	<thead>
         	<th>{{ exp.x_name }}</th>
             <th>{{ exp.y_name }}</th>
         </thead>
+    {% endif %}
+    
     {% if user_data %}
-	<h2>Data</h2>
+    	
         {% for data in user_data %}
         	<tr>
             	<td align="center">{{ data.x }}</td>
@@ -219,9 +224,8 @@ function analysis(url) {
       	<tr>
         	<td><input type="number" name="x"/></td>
             <td><input type="number" name="y"/></td>
-            <td><textarea name="comments"></textarea></td>
+            <td><textarea name="comments"  onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Comments</textarea></td>
         </tr>
-    
     </table>
     <input type="submit" value="Add Data Point">
     {% else %}
