@@ -14,7 +14,7 @@ import urllib2
 import re
 import main.facebook as fb
 
-def auth(request):
+def authCheck(request):
     authed = not isinstance(request.user,AnonymousUser)
     return render_to_response('auth.html', {'authed': authed, 'user': request.user} )
 
@@ -46,15 +46,14 @@ def msg(request):
     return render_to_response('hello.html', {'code': get_name(request)})
 
 def index(request):
-        authed = not isinstance(request.user,AnonymousUser)
-        if 'code' in request.GET and authed:
-            fba = FBAuth(code = request.GET['code'], user = request.user)
-            fba.save()
+	authed = not isinstance(request.user,AnonymousUser)
+	if 'code' in request.GET and authed:
+		fba = FBAuth(code = request.GET['code'], user = request.user)
+		fba.save()
 
-            at = get_auth_token(request)
-            fba = FBAuth2(token = at, user = request.user)
-            fba.save()
-
+		at = get_auth_token(request)
+		fba = FBAuth2(token = at, user = request.user)
+		fba.save()
 
 	list = Experiment.objects.all().order_by('-created')[:5]
 	return render_to_response('index.html', { #'fullname': get_name(request), 
