@@ -1,5 +1,5 @@
 # Create your views here.
-from main.models import Experiment, Subscription, Data, Vote
+from main.models import Experiment, Subscription, Data, Vote, DiscussionMessage
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -48,17 +48,40 @@ def register(request):
 def experiment(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
 	data = Data.objects.filter(experiment = exp, user = request.user)
-	sub = not isinstance(request.user,AnonymousUser)
+	authed = not isinstance(request.user,AnonymousUser)
+	comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
+	sub = False
 	
-	if sub:
+	if authed:
 		try:
 			sub = Subscription.objects.get(experiment = exp, user = request.user)
 		except (Subscription.DoesNotExist):
-			sub = False
+			pass
 	
 	vote = exp.votes()
 	
-	return render_to_response('experiment.html', {'exp': exp, 'request': request, 'user_data': data, 'subscription': sub})
+	return render_to_response('experiment.html', 
+							{'exp': exp, 
+							'request': request, 
+							'user_data': data, 
+							'subscription': sub,
+							'authed': authed, 
+							#'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
+							'comments': comm })
+
+
+def postcomm(request, exp_id):
+	authed = not isinstance(request.user,AnonymousUser)
+	if(request.method == 'POST' and authed):		
+		exp = get_object_or_404(Experiment, pk = exp_id)
+		msgTitle = request.POST['title']
+		msgBody = request.POST['message']
+		
+		if msgBody != "" :
+			msg = DiscussionMessage(experiment = exp, user=request.user, title=msgTitle, message=msgBody)
+			msg.branch = 0
+			msg.save()
+	return redirect("/view/%d/" % (exp.id));
 
 def submit_error(var_name):
 	return "'%s' must be a whole number." % var_name;
@@ -129,10 +152,12 @@ def unjoin(request, exp_id):
 	return redirect("/view/%d/" % (exp.id))
 
 def search(request):
+	# TODO: multiple search pages!
 	q = ""
 	if 'q' in request.GET:
 		q = request.GET['q']
-		found_entries = Experiment.objects.all().filter( y_name=q )
+		found_entries = list(Experiment.objects.all().filter( y_name=q )[:10])
+		found_entries = found_entries + list(Experiment.objects.all().filter(x_name=q)[:10])
 	else:
 		found_entries = ''
 	return render_to_response('search.html', { 'search': q, 'list': found_entries, 'request': request })

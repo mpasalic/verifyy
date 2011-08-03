@@ -2,6 +2,7 @@
 
 {% block title %}Experiment{% endblock %}
 
+
 {% block extrahead %}
 <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
 <script language="javascript">
@@ -128,4 +129,48 @@ Login to submit data.
 
 {% endif %}
 </div>
+
+<h2>Experiment Discussion</h2>
+{% for cmnt in comments %}
+	<div style="border:1px solid grey; padding: 10px 10px">
+	<table>
+	{% if not cmnt.title == "" %}
+	<tr><td>
+		<b>{{ cmnt.title }}</b><br/>
+	</td></tr>
+	{% endif %}
+	<tr><td><i>By {{cmnt.user.username}} at {{ cmnt.tstamp }}</i> </td></tr>
+	<tr><td>{{ cmnt.message }}</td></tr>
+	<!--  TODO: Threaded commenting	 -->
+	<!-- <tr><td><button type="button" id="Reply">Reply</button></td></tr> -->
+	</table>
+	
+ 	</div>
+{% endfor %}
+
+<h2>Post Comments</h2>
+<div style="border:1px solid grey; padding: 10px 10px" width="100%">
+    {% if not request.user.is_authenticated %}
+		<p>Login to post comments.</p>
+	{% else %}
+		{% if not authed %}
+			<p>Login to post comments.</p>
+		{% else %}
+		
+			<form action="/postcomm/{{ exp.pk }}/" method="post">
+            <table width="100%">
+            	<tr><td width="100%">Title: &nbsp; &nbsp; <input type="text" name="title"></input></td></tr>
+            	<tr><td width="100%"><textarea name="message" rows="4" cols="80">Enter your comment</textarea></td></tr>
+            </table>
+            <br>
+            <input type="submit" value="Comment!">
+            </form>
+            
+		{% endif %}
+	{% endif %}	
+</div>
+
 {% endblock %}
+
+
+
