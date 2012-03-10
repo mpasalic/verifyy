@@ -8,10 +8,81 @@ How does <input name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(t
 
 <h2>Measurements</h2>
 
-<span name="x" class="experiment_name"></span> is measured in units of 
+<script>
+typechange = function (variable) {
+	var shouldDisplayArea = document.getElementById("choice_" + variable).value == 'c';
+	var areaDiv = document.getElementById("choice_area_" + variable);
+	if (shouldDisplayArea && !areaDiv.inited) {
+		renderInitialChoices(variable);
+		areaDiv.inited = true;
+	}
+	areaDiv.style['display'] = shouldDisplayArea ? 'block' : 'none';
+};
+
+getChoicesDiv = function (variable) {
+	return document.getElementById("choice_area_" + variable + "_optionsdiv");
+};
+
+getChoiceId = function (variable, index, comp) {
+	return 'choice_area_smallbutton_' + comp + '_' + variable + '_' + index;
+};
+
+renderInitialChoices = function (variable) {
+	var choicesDiv = getChoicesDiv(variable);
+	appendChoice(choicesDiv, variable, 0, false);
+	appendChoice(choicesDiv, variable, 1, false);
+	appendChoice(choicesDiv, variable, 2, true);
+	choicesDiv.numChoices = 3;
+};
+
+appendChoice = function (div, variable, index, plusButton) {
+	var identifier = '\'' + variable + '\', ' + index + '';
+	var span = document.createElement('span');
+	span.id = getChoiceId(variable, index, 'span');
+	span.innerHTML = '<input name="choice_' + variable + '_' + index + '" id="' + getChoiceId(variable, index, 'input') + '" type="text" class="noMargin"></input>' + 
+			'<span class="smallButton" id="' + getChoiceId(variable, index, 'minus') + '" onclick="choiceClick(' + identifier + ', false)"><img src="/static/images/minus-8.png"></span>' + 
+			'<span id="' + getChoiceId(variable, index, 'plus') + '" style="display:' + (plusButton ? 'inline-block' : 'none') + '"> / ' + 
+			'<span class="smallButton" onclick="choiceClick(' + identifier + ', true)"><img src="/static/images/plus-8.png"></span></span><br>';
+	div.appendChild(span);
+};
+
+removeEleById = function (id) {
+	var ele = document.getElementById(id);
+	ele.parentNode.removeChild(ele);
+};
+
+choiceClick = function (variable, index, plus) {
+	var choicesDiv = getChoicesDiv(variable);
+	if (plus) {
+		var oldPlusButton = document.getElementById(getChoiceId(variable, index, 'plus'));
+		oldPlusButton.style['display'] = 'none';
+		appendChoice(getChoicesDiv(variable), variable, choicesDiv.numChoices++, true);
+	} else if (choicesDiv.numChoices > 2) {
+		var prevInput = document.getElementById(getChoiceId(variable, index, 'input'));
+		for (var i = index + 1; i < choicesDiv.numChoices; i++) {
+			var thisInput = document.getElementById(getChoiceId(variable, i, 'input'));
+			prevInput.value = thisInput.value;
+			prevInput = thisInput;
+		}
+		
+		removeEleById(getChoiceId(variable, choicesDiv.numChoices - 1, 'span'));
+		
+		choicesDiv.numChoices--;
+		
+		document.getElementById(getChoiceId(variable, choicesDiv.numChoices - 1, 'plus')).style['display'] = 'inline-block';
+	}
+};
+</script>
+
+<span name="x" class="experiment_name"></span> is a {% include 'datatype_choices.html' with var='x'%} measured in units of 
 <input name="xunits" type="text" value="{{ exp.x_units }}"><br>
-<span name="y" class="experiment_name"></span> is measured in units of 
-<input name="yunits" type="text" value="{{ exp.y_units }}"><br><br>
+{% include 'datatype_choicesarea.html' with var='x'%}
+<span name="y" class="experiment_name"></span> is a {% include 'datatype_choices.html' with var='y'%} measured in units of 
+<input name="yunits" type="text" value="{{ exp.y_units }}"><br>
+{% include 'datatype_choicesarea.html' with var='y'%}
+<br>
+
+<br>
 
 How is <span name="x" class="experiment_name">{{ exp.x_name }}</span> controlled?<br>
 <textarea name="xdesc" rows="5" cols="80">{{ exp.x_control }}</textarea><br>
