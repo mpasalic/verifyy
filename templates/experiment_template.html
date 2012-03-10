@@ -10,8 +10,8 @@ How does <input name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(t
 
 <script>
 typechange = function (variable) {
-	var shouldDisplayArea = document.getElementById("choice_" + variable).value == 'c';
-	var areaDiv = document.getElementById("choice_area_" + variable);
+	var shouldDisplayArea = document.getElementById(variable + 'type').value == 'c';
+	var areaDiv = document.getElementById('choice_area_' + variable);
 	if (shouldDisplayArea && !areaDiv.inited) {
 		renderInitialChoices(variable);
 		areaDiv.inited = true;
@@ -20,7 +20,7 @@ typechange = function (variable) {
 };
 
 getChoicesDiv = function (variable) {
-	return document.getElementById("choice_area_" + variable + "_optionsdiv");
+	return document.getElementById('choice_area_' + variable + '_optionsdiv');
 };
 
 getChoiceId = function (variable, index, comp) {

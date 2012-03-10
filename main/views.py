@@ -263,12 +263,14 @@ def create_experiment(request):
 		return login(request)
 
 	try:
-                exp = Experiment()
+		exp = Experiment()
 		exp.x_name = request.POST['x']
 		exp.y_name = request.POST['y']
 		exp.description = request.POST['desc']
 		exp.x_units = request.POST['xunits']
 		exp.y_units = request.POST['yunits']
+		exp.x_type = request.POST['xtype']
+		exp.y_type = request.POST['ytype']
 		exp.x_control = request.POST['xdesc']
 		exp.y_control = request.POST['ydesc']
 		exp.user = request.user
@@ -279,19 +281,41 @@ def create_experiment(request):
 	else:
 		exp.save()
 
-                def index_contents(c):
-                    for w in tokenize(c):
-                        ind = Index()
-                        ind.doc = exp
-                        ind.word = w
-                        ind.save()
-                index_contents(exp.x_name)
-                index_contents(exp.y_name)
-                index_contents(exp.description)
+		if exp.x_type == 'c':
+			i = 0
+			while ('choice_x_%d' % i) in request.POST:
+				option = ChoiceOptions()
+				option.option = request.POST[('choice_x_%d' % i)]
+				option.order = i
+				option.experiment = exp
+				option.var = 'x'
+				option.save()
+				i = i + 1
+		
+		if exp.y_type == 'c':
+			i = 0
+			while ('choice_y_%d' % i) in request.POST:
+				option = ChoiceOptions()
+				option.option = request.POST[('choice_y_%d' % i)]
+				option.order = i
+				option.experiment = exp
+				option.var = 'y'
+				option.save()
+				i = i + 1
+		
+		def index_contents(c):
+			for w in tokenize(c):
+				ind = Index()
+				ind.doc = exp
+				ind.word = w
+				ind.save()
+				index_contents(exp.x_name)
+				index_contents(exp.y_name)
+				index_contents(exp.description)
 
-                at = get_auth_token(request)
-                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!"
-                     % (exp.y_name + " with " + exp.x_name) )
+				at = get_auth_token(request)
+				put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!"
+					% (exp.y_name + " with " + exp.x_name) )
 
 		return redirect("/view/%d/" % (exp.id))
 		
