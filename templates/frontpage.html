@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>VerifyY - The Pseudo-Science Social Experiment Website</title>
+<link href="/static/css/verifyy.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body class="front_page">
+    <div style="left: 0; right: 0; height: 22px;" class="front_page_menu_bar">
+    {% include "menu.html" %}
+    </div>
+	<div class="front_page_header">
+    	<div style="position: relative; left: 200px; top: 440px;">
+           	<form action="/search" method="get">
+        		<input class="search_box" name="q" id="search_bar" type="textbox" style="width: 430px; height: 22px;">
+   		   	</form> 
+        </div>
+    </div>
+    <div class="front_page_content">
+  		<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px;">
+        <div class="box_header">popular experiments</div>
+		{% include "list.html" with no_results_message="No experiments available yet." %}
+
+        </div>
+    </div>
+</body>
+
+</html>

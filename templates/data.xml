@@ -6,11 +6,11 @@
 {% endfor %}
 </categories>
 
-<dataSet seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
+<dataset seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 {% for datapoint in data %}
-	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
+	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" comment="{{ datapoint.comments }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
 {% endfor %}
-</dataSet>
+</dataset>
 
 <styles>
 	<definition>

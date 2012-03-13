@@ -1,0 +1,317 @@
+/* CSS Document */
+
+/* Imports */
+@import url(http://fonts.googleapis.com/css?family=Gentium+Basic:400,700);
+
+/* General */
+
+body {
+	margin: 0px;
+	padding: 0px;
+	
+	font-family: Georgia, Helvetica, sans-serif;
+	font-size: 18px;
+}
+a:link {color: #368; text-decoration: none; }
+a:visited {color: #368;}
+a:hover {color: #368; text-decoration: underline; }
+a:active {color: #368;}
+
+
+#main_page_footer {
+	text-align: center;
+	font-size: 13px;
+	color: #777;
+}
+
+#footer a:link {color: #777;}
+#footer a:visited {color: #777;}
+#footer a:hover {color: #777;}
+#footer a:active {color: #777;}
+
+.error, .info {
+	width: 100%;
+	text-align: center;	
+}
+
+/* Basics */
+
+.search_box {
+	border: #A3A3A3 thin solid;
+	background: url(../images/search_icon.png) right no-repeat;
+}
+
+.loading_icon {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;	
+}
+
+.button_progress {
+	background: url(../images/ajax-loader.gif);
+}
+.button_normal {
+	
+}
+
+/* Menu */
+
+.menu {
+	margin-top: 0px;
+	height: 24px;
+	
+	padding-top: 5px;
+	margin-left: auto;
+	margin-right: auto;	
+	text-align: center;
+	
+	font-size: 12px;
+	color: #777;
+}
+
+.menu_item {
+
+	padding-bottom: 4px;
+	padding-top: 5px;
+	padding-left: 8px;
+	padding-right: 8px;	
+}
+
+.menu_item A:link {
+	font-size: 12px;
+	color: #777;
+	text-decoration: none;
+}
+.menu_item A:hover {
+	color: #777;
+	text-decoration: underline;
+}
+.menu_item A:visited {
+	color: #777;
+	
+}
+.menu_item A:active {
+	color: #777;
+	text-decoration: underline;
+}
+
+/* Front Page */
+
+
+.front_page {
+	background-color: #eeeeee;	
+}
+
+.front_page_menu_bar {
+	background-color: #e0e0e0;	
+}
+
+.front_page_header {
+	background-image: url(../images/front_page_header.png);
+	width: 861px;
+	height: 534px;
+	
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.front_page_content {
+	background-image: url(../images/bg_repeat.png);
+	background-repeat: repeat-y;
+	
+	width: 861px; 
+	
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Main Page */
+.main_page_menu_bar {
+	background-color: #f6f6f6;	
+	border-bottom: #e6e6e6 thin solid;
+}
+
+.main_page_header {
+	background-image:url(../images/main_page_header.png);
+	width: 484px;
+	height: 144px;
+	
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Experiment */
+.experiment {
+	font-size: 13px;
+}
+
+.experiment_number {
+	font-family: 'Gentium Basic', serif;
+	font-size: 50px;
+	text-align: center;
+	color: #737373;
+}
+
+.experiment_vote_box {
+	border: #9f9f9f	thin solid;
+	color: #737373;
+}
+
+.experiment_number_desc {
+	font-size: 12px;
+	color: #737373;
+}
+
+.experiment_box {
+	font-size: 17px;
+}
+
+.experiment_comments_section {
+	font-size: 15px;	
+}
+
+.experiment_comment_username {
+	font-weight: 700;
+	font-size: 13px;
+	color: #368;
+}
+
+.experiment_comment_username A:link { color: #368; } 
+.experiment_comment_username A:hover { color: #368; } 
+.experiment_comment_username A:active { color: #368; } 
+.experiment_comment_username A:visited { color: #368; } 
+
+.experiment_comment_extra {
+	font-size: 13px;
+	color: #999;
+}
+
+/* Experiment listing */
+
+.experiment_listing {
+	color: #333;
+}
+
+.experiment_listing_details {
+
+}
+.experiment_listing_desc {
+	white-space: nowrap;
+	max-width: 650px;
+	overflow:hidden;
+	
+	margin-top: 0px;
+	
+	
+	font-size: 13px;
+	color: #777;
+}
+
+.experiment_listing_extra {
+	font-family: 'Gentium Basic', serif;
+	font-size: 13px;
+	color: #777;
+}
+
+.experiment_listing_vote {
+	font-family: 'Gentium Basic', serif;
+	font-size: 50px;
+	width: 50px;
+	text-align: center;
+}
+
+.experiment_listing_name A:link {
+  	font-family: 'Gentium Basic', serif;
+	font-size: 20px;
+	text-decoration: none;
+	color: #333;
+}
+.experiment_listing_name A:active {
+
+	text-decoration: none;
+	color: #333;
+}
+.experiment_listing_name A:hover {
+
+	text-decoration: none;
+	color: #333;
+}
+.experiment_listing_name A:visited {
+
+	text-decoration: none;
+	color: #333;
+}
+
+/* Table */
+
+table.rounded_table {
+  	border-collapse: collapse;
+}
+table.rounded_table td, table.rounded_table th {
+  	border: 1px #9f9f9f solid;
+}
+table.rounded_table tr:first-child td {
+  	border-top: 0;
+}
+table.rounded_table tr:last-child td {
+  	border-bottom: 0;
+}
+table.rounded_table tr td:first-child,
+table.rounded_table tr th:first-child {
+  	border-left: 0;
+}
+table.rounded_table tr td:last-child,
+table.rounded_table tr th:last-child {
+  	border-right: 0;
+}
+
+table.rounded_table td {
+ 	padding: 5px;
+}
+
+/* Big Box */
+.box_header {
+	font-family: 'Gentium Basic', serif;
+	color: #737373;
+	font-size: 18px;
+	
+	padding-bottom: 5px;
+	
+}
+
+.centered_box {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.rounded_big_box {
+	padding: 10px;
+	
+	background: #FFF;
+	border: #9f9f9f thin solid;
+	border-radius: 20px;
+}
+
+.rounded_shaded_big_box {
+	padding: 10px;
+	
+	moz-box-shadow: 0 0 5px 2px #DDD;
+	webkit-box-shadow: 0 0 5px 2px #DDD;
+	box-shadow: 0 0 5px 2px #DDD;
+	
+	/* 
+	background: 
+		url(../images/bigbox/top_big_box.png) 0 0 no-repeat,
+   		url(../images/bigbox/middle_big_box.png) 100% 0 no-repeat,
+   		url(../images/bigbox/bottom_big_box.png) 0 100% no-repeat;*/
+	border: #9f9f9f thin solid;
+	border-radius: 20px;
+}
+
+.rounded_small_box {
+	padding: 0px;
+	
+	background-color: #ffffff;
+	border: #9f9f9f thin solid;
+	border-radius: 5px;
+}

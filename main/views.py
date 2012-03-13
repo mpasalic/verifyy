@@ -75,7 +75,7 @@ def index(request):
 		fba.save()
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
-	return render_to_response('index.html', {# 'fullname': get_name(at), 
+	return render_to_response('frontpage.html', {# 'fullname': get_name(at), 
         'request': request, 'list':list })
 
 def login(request):

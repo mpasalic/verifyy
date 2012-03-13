@@ -1,0 +1,36 @@
+<div class="menu">
+    <span class="menu_item">
+        <a href="/">HOME</a>  
+    </span> 
+    <span class="menu_item">
+        <a href="/create">CREATE EXPERIMENT</a> 
+    </span> 
+    <span class="menu_item">
+        <!-- <form action="/search" method="get">
+             <input class="mini_search" type="text" name="q" />
+        </form>
+        -->
+        <a href="/search">SEARCH</a>
+    </span>
+  
+    {% if request.user.is_authenticated %}
+    
+    <span class="menu_item">
+        <a href="/friends/">MY FRIENDS</a> 
+    </span>
+    
+    <span class="menu_item">
+        <a href="/user/{{ request.user.username }}">MY EXPERIMENTS</a> 
+    </span>
+    <span class="menu_item">
+        <strong>{{ request.user.username }}</strong> <a href="/logout"> (LOGOUT)</a> 
+    </span>
+   
+    {% else %} 
+    <span class="menu_item">
+        <a href="/login">LOGIN</a> 
+    </span>
+    
+    {% endif %}
+    
+</div>

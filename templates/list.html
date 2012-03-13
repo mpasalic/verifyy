@@ -1,14 +1,14 @@
 {% for exp in list %}
 
 <div style="clear: both; height: 5px;"></div>
-<div class="experiment_dividor" style="clear: both; margin: 0px;"></div>
+<div class="experiment_listing_dividor" style="clear: both; margin: 0px;"></div>
 <div style="clear: both; height: 5px;"></div>
 
-<div class="experiment">
-    <div class="experiment_statistics">
-        <div class="experiment_number experiment_vote" style="float: left;">
+<div class="experiment_listing">
+    <div class="experiment_listing_details">
+        <div class="experiment_listing_vote" style="float: left;">
             {{ exp.votes }}
-            <div class="experiment_number_desc">votes</div>
+            <!-- <div class="experiment_listing_vote_desc">votes</div> -->
         </div>
         <!--
         <div class="experiment_number experiment_users" style="float: left;">
@@ -21,10 +21,10 @@
         </div>
         -->
     </div>
-    <div class="experiment_summary" style="float: left; max-width: 650px;">
-        <div class="experiment_name"><a href="/view/{{ exp.pk }}"><span class="y_name">{{ exp.y_name }}</span> <span class="with">with</span> <span class="x_name">{{ exp.x_name }}</span></a></div>
-    	<div class="experiment_desc">{{ exp.description }}</div>
-        <div class="experiment_extra"> <strong>{{ exp.subscription_set.all.count }}</strong> user(s) &nbsp;&nbsp;&nbsp; <strong>{{ exp.data_set.all.count }}</strong> data point(s) </div>
+    <div class="experiment_listing_summary" style="float: left; max-width: 650px;">
+        <div class="experiment_listing_name"><a href="/view/{{ exp.pk }}"><span class="experiment_listing_y_name">{{ exp.y_name }}</span> <span class="experiment_listing_verb">with</span> <span class="experiment_listing_x_name">{{ exp.x_name }}</span></a></div>
+    	<div class="experiment_listing_desc">{{ exp.description }}</div>
+        <div class="experiment_listing_extra"> <strong>{{ exp.subscription_set.all.count }}</strong> user(s) &nbsp;&nbsp;&nbsp; <strong>{{ exp.data_set.all.count }}</strong> data point(s) </div>
     </div>
 </div>
 {% empty %}
@@ -32,5 +32,5 @@
 {% endfor %}
 
 <div style="clear: both; height: 5px;"></div>
-<div class="experiment_dividor" style="clear: both; margin: 0px;"></div>
+<div class="experiment_listing_dividor" style="clear: both; margin: 0px;"></div>
 <div style="clear: both; height: 5px;"></div>

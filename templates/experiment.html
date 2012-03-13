@@ -2,7 +2,6 @@
 
 {% block title %}Experiment{% endblock %}
 
-
 {% block extrahead %}
 <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
 <script language="javascript">
@@ -34,11 +33,58 @@ function vote(val) {
 		xmlhttp.open("GET","/downvote/{{ exp.id }}/",true);
 	}
 	xmlhttp.send();
-	
 }
 
-function analysis(url) {
-		
+ function drawChart(xmldata) {
+
+	var data = new google.visualization.DataTable();
+	
+	var chartElement = xmldata.getElementsByTagName("chart")[0];
+	
+	data.addColumn('number', chartElement.getAttribute("xAxisName"));
+	data.addColumn('number', chartElement.getAttribute("yAxisName"));
+	data.addColumn({type:'string', role:'tooltip'});
+	
+	var datasetElement = xmldata.getElementsByTagName("dataset")[0];
+	var dataElements = datasetElement.getElementsByTagName("set");
+
+	data.addRows(dataElements.length);
+ 
+	for (var i = 0; i < dataElements.length; i++) {
+		var dataElement = dataElements[i];
+		var x = dataElement.getAttribute("x");
+		var y = dataElement.getAttribute("y");
+		data.setCell(i, 0, parseFloat(x));
+		data.setCell(i, 1, parseFloat(y));
+		data.setCell(i, 2, dataElement.getAttribute("tooltext"));
+	}
+
+	var xmin = parseFloat(xmldata.getElementsByTagName("xmin")[0].nodeValue);
+	var xmax = parseFloat(xmldata.getElementsByTagName("xmax")[0].nodeValue);
+	var ymin = parseFloat(xmldata.getElementsByTagName("ymin")[0].nodeValue);
+	var ymax = parseFloat(xmldata.getElementsByTagName("ymax")[0].nodeValue);
+	
+	var options = {
+	  chartArea: {left:40,top:30,bottom:40, width:"90%",height:"75%"},
+	  hAxis: {title: chartElement.getAttribute("xAxisName"), minValue: xmin , maxValue: xmax },
+	  vAxis: {title: chartElement.getAttribute("yAxisName"), minValue: ymin , maxValue: ymax },
+	  legend: 'none'
+	};
+	
+	var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+	chart.draw(data, options);
+	
+	document.getElementById("experiment_data_points").innerHTML = dataElements.length;
+	total = xmldata.getElementsByTagName("regression")[0];
+	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
+}
+
+function loadChartData(url) {
+	
+	document.getElementById("chart_div").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
+	document.getElementById("experiment_regression_summary").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
+	document.getElementById("experiment_data_points").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>"; 
+	
 	var xmlhttp;
 	if (window.XMLHttpRequest)
 	{// code for IE7+, Firefox, Chrome, Opera, Safari
@@ -49,21 +95,146 @@ function analysis(url) {
 	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	}
 	
-	document.getElementById("regression_summary").innerHTML = "Loading data...";
+	xmlhttp.onreadystatechange=function()
+	{
+	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			var xmldata = xmlhttp.responseXML;
+			drawChart(xmldata);
+		}
+	}
+
+
+	xmlhttp.open("GET",url,true);
+	xmlhttp.send();
+}
+
+function loadDefaultChart() {
+	setFilter(0);
+}
+
+function setFilter(filter) {
+	var url = "/data/{{ exp.pk }}/?filter="+ filter;
+	loadChartData(url);
+	
+	var me = document.getElementById("filter_me");
+	var friend = document.getElementById("filter_friends");
+	var everyone = document.getElementById("filter_everyone");
+
+	me.className = "filter filter_unselected";
+	friend.className = "filter filter_unselected";
+	everyone.className = "filter filter_unselected";
+	
+					
+	if (filter == 0) {
+		everyone.className = "filter filter_selected";
+	} else if (filter == 1) {
+		me.className = "filter filter_selected";
+	} else if (filter == 2) {
+		friend.className = "filter filter_selected"
+	}
+}
+
+function loadUserTable() {
+	var url = "/data/{{ exp.pk }}/?filter=1";
+	
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
 	
 	xmlhttp.onreadystatechange=function()
 	{
 	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
-			xml = xmlhttp.responseXML
-			total = xml.getElementsByTagName("regression")[0]
-			document.getElementById("regression_summary").innerHTML=total.childNodes[0].nodeValue;
+			var xmldata = xmlhttp.responseXML;
+			drawUserTable(xmldata);
 		}
 	}
 
+
 	xmlhttp.open("GET",url,true);
 	xmlhttp.send();
+}
+
+function drawUserTable(xmldata) {
+	var data = new google.visualization.DataTable();
+
+	var chartElement = xmldata.getElementsByTagName("chart")[0];
 	
+	data.addColumn('string', chartElement.getAttribute("xAxisName"));
+	data.addColumn('string', chartElement.getAttribute("yAxisName"));
+	data.addColumn('string', 'Comment');
+	
+	var datasetElement = xmldata.getElementsByTagName("dataset")[0];
+	var dataElements = datasetElement.getElementsByTagName("set");
+
+	data.addRows(dataElements.length + 1);
+ 
+	for (var i = 0; i < dataElements.length; i++) {
+		var dataElement = dataElements[i];
+		var x = dataElement.getAttribute("x");
+		var y = dataElement.getAttribute("y");
+		data.setCell(i, 0, x);
+		data.setCell(i, 1, y);
+		data.setCell(i, 2, dataElement.getAttribute("comment"));
+	}
+	
+	data.setCell(dataElements.length, 0, "<input id=\"x_entry\" type=\"text\" />")
+	data.setCell(dataElements.length, 1, "<input id=\"y_entry\" type=\"text\" />")
+	data.setCell(dataElements.length, 2, "<input id=\"comment_entry\" type=\"text\" />")
+	
+	var table = new google.visualization.Table(document.getElementById('table_div'));
+	table.draw(data, {showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
+}
+
+function disableButton(button) {
+	button.disabled = true;
+}
+
+function enableButton(button) {
+	button.disabled = false;
+}
+
+
+function addDataEntry() {
+	
+	var x = document.getElementById("x_entry").value;
+	var y = document.getElementById("y_entry").value;
+	var comment = document.getElementById("comment_entry").value;
+	
+	disableButton(document.getElementById("add_entry_button"));
+	
+	var url = "/submit/{{ exp.pk }}/";
+	var params = "x=" + encodeURI (x) + "&y=" + encodeURI (y) + "&comments=" + encodeURI (comment);
+	
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	xmlhttp.onreadystatechange=function()
+	{
+	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
+		{
+			var xmldata = xmlhttp.responseXML;
+			loadUserTable();	
+			enableButton(document.getElementById("add_entry_button"));
+		}
+	}
+
+	xmlhttp.open("POST",url,true);
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send(params);
 }
 </script>
 <style type="text/css">
@@ -88,185 +259,270 @@ function analysis(url) {
 {% endblock %}
 
 {% block content %}
+		
 
-<div id="addthis" style="float: right; width: 140px">
-<!-- AddThis Button BEGIN -->
-<div class="addthis_toolbox addthis_default_style ">
-<a class="addthis_button_preferred_1"></a>
-<a class="addthis_button_preferred_2"></a>
-<a class="addthis_button_preferred_3"></a>
-<a class="addthis_button_preferred_4"></a>
-<a class="addthis_button_compact"></a>
-<a class="addthis_counter addthis_bubble_style"></a>
-</div>
-<script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e395cd66332e336"></script>
-<!-- AddThis Button END -->
-</div>
 
-<div class="" style="float: left;">
-	<div class="experiment_number experiment_vote">
-        <div style="float: left; margin-left: 5px;">
-            <span id="votetotal">{{ exp.votes }}</span>
-            <div class="experiment_number_desc">votes</div>
+    
+    <div style="width: 700px; margin-top: 30px;" class="experiment centered_box rounded_shaded_big_box">
+    	<div style="position: relative">
+            <div class="experiment_vote_box" style="position: absolute; margin-left: 10px; width: 60px; height: 70px; top: 20px; left: -100px;">
+                <div style="position: absolute;">
+                    <div style="position:relative; left: 3px; top: 10px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
+                    <div style="position:relative; left: 3px; top: 18px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
+                </div>
+                <div style="position: absolute; left: 20px;">
+                    <span id="votetotal" class="experiment_number centered_box" style="width: 50px; text-align: center;">{{ exp.votes }}</span>
+                </div>
+                <div class="experiment_number_desc" style="position: absolute; top: 50px; left: 10px;">votes</div>
+              
+            </div>
         </div>
-        <div style="float: left;">
-            <div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
-            <div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
+    
+        <div class="box_header">experiment</div>
+        <!--
+        <div id="addthis" style="float: right; width: 140px">
+        <div class="addthis_toolbox addthis_default_style ">
+        <a class="addthis_button_preferred_1"></a>
+        <a class="addthis_button_preferred_2"></a>
+        <a class="addthis_button_preferred_3"></a>
+        <a class="addthis_button_preferred_4"></a>
+        <a class="addthis_button_compact"></a>
+        <a class="addthis_counter addthis_bubble_style"></a>
         </div>
-    </div>
-        <div style="text-align: left; margin-top: 10px; margin-left: 5px;">
-{% if subscription %}
-		<a href="/unjoin/{{exp.pk}}/">leave</a><br />
-{% else %}
-        <a href="/join/{{exp.pk}}/">join</a><br />
-{% endif %}
-		<a href="/report/{{exp.pk}}/">report</a><br />
-{% if exp.user == request.user or request.user.is_superuser %}
-        <a href="/edit/{{exp.pk}}/">edit</a><br />
-{% endif %}
-    </div>
-	
-</div>
-
-<div style="float: left; max-width: 650px; margin-left: 10px">
-    <h1 style="margin-top: 0px; margin-bottom: 0px; padding-bottom:0px;"><span class="y_name">{{ exp.y_name }}</span> <span class="with" style=" ">with</span> <span class="x_name">{{ exp.x_name }}</span></h1> 
-<span class="demphasize">created by</span> <a href="/user/{{ exp.user.username }}/">{{ exp.user.username }}</a><br />
-{{ exp.description }} 
-
-
-<div style=" padding: 10px 0px">
-    <span class="emphasize">{{ exp.y_name }}</span> measured in <span class="emphasize">{{ exp.y_units }}</span>.<br>
-    {{ exp.y_control }}<br><br>
-    
-    <span class="emphasize">{{ exp.x_name }}</span> is measured in <span class="emphasize">{{ exp.x_units }}</span>.<br>
-    {{ exp.x_control }}
-</div> 
-
-</div>
-<p style="clear: both"></p>
-
-<div id="chartdiv" style="width: 740px; height: 400px"></div>
-
-<br />
-<div id="regression" class="boxed" style="margin-left: auto; margin-right: auto; width: 400px;">
-    <h2>Analysis</h2>
-    <div id="regression_summary"></div>
-</div>
-
-<div id="filter_selector" style="text-align: center; margin-top: 20px;">
-	<a id="filter_me" class="filter filter_unselected" href="" onclick="setfilter(1); return false;">me</a>
-    <a id="filter_friends" class="filter filter_unselected" href="" onclick="setfilter(2); return false;">friends</a>
-    <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setfilter(0); return false;">everyone</a>
-</div>
-
-<script type="text/javascript">
-	var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "740", "400", "0", "0");
-	
-	function setfilter(filter) {
-		chart.setXMLUrl("/data/{{ exp.pk }}/?filter="+ filter);
-		analysis("/data/{{ exp.pk }}/?filter="+ filter);
-		
-		var me = document.getElementById("filter_me");
-		var friend = document.getElementById("filter_friends");
-		var everyone = document.getElementById("filter_everyone");
-
-		me.className = "filter filter_unselected";
-		friend.className = "filter filter_unselected";
-		everyone.className = "filter filter_unselected";
-		
-						
-		if (filter == 0) {
-			everyone.className = "filter filter_selected";
-		} else if (filter == 1) {
-			me.className = "filter filter_selected";
-		} else if (filter == 2) {
-			friend.className = "filter filter_selected"
-		}
-		
-		
-		
-	}
-	setfilter(0);
- 	chart.render("chartdiv");
-	
-</script>
-<br>
-
-<br />
-{% if not request.user.is_authenticated %}
-<a href="/login">Login</a> to submit data and comments.
-{% else %}
-	<h2>Data</h2>
-    <form action="/submit/{{ exp.pk }}/" method="post">
-    
-    <table border="0" style="" cellspacing="0">
-    
-    {% if user_data or subscription %}
-    	<thead>
-        	<th>{{ exp.x_name }}<br />({{ exp.x_units}})</th>
-            <th>{{ exp.y_name }}<br />({{ exp.y_units}})</th>
-            <th>Comments</th>
-        </thead>
-    {% endif %}
-    
-    {% if user_data %}
-    	
-        {% for data in user_data %}
-        	<tr>
-            	<td align="center">{{ data.x }}</td>
-                <td align="center">{{ data.y }}</td>
-                <td align="center">{{ data.comments }}</td>
-            </tr>
-        {% endfor %}
-        	
-    {% endif %}
-    
-    {% if subscription %}
-      	<tr>
-        	<td><input type="number" name="x"/></td>
-            <td><input type="number" name="y"/></td>
-            <td><textarea name="comments" onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }"></textarea></td>
-        </tr>
-    </table>
-    <input type="submit" value="Add Data Point">
-    {% else %}
-    </table>
-     	Join experiment to submit data.
-    {% endif %}
-	
-            
-	</form>
-{% endif %}
-
-</div>
-
-<h2>Experiment Discussion</h2>
-{% for cmnt in comments %}
-	<div style="">
-    	<a href="/user/{{cmnt.user.username}}/">{{cmnt.user.username}}</a><span style="color:#666"> posted {{ cmnt.tstamp }}</span>
-        <div>
-          {{ cmnt.message }}
-		</div>
-	</div>
-    <br />
-
-{% empty %}
-No comments submitted.
-{% endfor %}
-<br />
-
-<div style="" width="100%">
-    {% if request.user.is_authenticated %}
-  <div width="400px">
-        <form action="/postcomm/{{ exp.pk }}/" method="post">
-       
-          <input type="hidden" name="title" value=""></input>
-       	  <textarea name="message" rows="3" cols="60" onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Enter your comment</textarea><br />
-       	  <input type="submit" value="Submit">
+        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e395cd66332e336"></script>
+        </div>--->
         
-    	</form>
+        <!--
+        <div class="" style="float: left;">
+            <div class="">
+                <div style="float: left; margin-left: 5px;">
+                    <span class="experiment_number">{{ exp.votes }}</span>
+                    <div class="experiment_number_desc">votes</div>
+                </div>
+                <div style="float: left;">
+                    <div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
+                    <div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
+                </div>
+            </div>
+            
+                <div style="text-align: left; margin-top: 10px; margin-left: 5px;">
+        {% if subscription %}
+                <a href="/unjoin/{{exp.pk}}/">leave</a><br />
+        {% else %}
+                <a href="/join/{{exp.pk}}/">join</a><br />
+        {% endif %}
+                <a href="/report/{{exp.pk}}/">report</a><br />
+        {% if exp.user == request.user or request.user.is_superuser %}
+                <a href="/edit/{{exp.pk}}/">edit</a><br />
+        {% endif %}
+            </div>
+            
+        </div>
+        -->
+    
+        <div class="rounded_small_box experiment_box centered_box" style="width: 650px;">
+            <table class="rounded_table" style="table-layout: fixed; width: 100%;">
+                <tr>
+                    <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
+                    <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
+                    <td style="width: 100%">{{ exp.x_units }}</td>
+                </tr>
+                <tr>
+                    <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
+                    <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
+                    <td style="width: 100%">{{ exp.y_units }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="font-size: 15px;">
+                        <!-- <span style="font-size: 10px;">description</span><br /> -->
+                        {{ exp.description }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+   		<p class="clear"></p>
+        <div class="box_header">data</div>
+    
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+          google.load("visualization", "1", {packages:["corechart"]});
+          google.setOnLoadCallback(loadDefaultChart);
+        </script>
+        <div class="rounded_small_box centered_box" style="width: 650px; ">
+            
+            <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;"></div>
+            <div id="filter_selector" style="text-align: center; margin-top: 20px;">
+                <a id="filter_me" class="filter filter_unselected" href="" onclick="setFilter(1); return false;">me</a>
+                <a id="filter_friends" class="filter filter_unselected" href="" onclick="setFilter(2); return false;">friends</a>
+                <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setFilter(0); return false;">everyone</a>
+            </div>
+        </div>
+    	<p class="clear"></p>
+        <div class="box_header">analysis</div>
+        <div id="experiment_regression" class="rounded_small_box experiment_box centered_box" style="width: 650px;">
+            
+             <table class="rounded_table" style="table-layout: fixed; width: 100%;">
+                <tr>
+                    <td style="width: 100px;">Correlation</td>
+                    <td style="width: 100%"><span id="experiment_regression_summary"></span></td>
+                </tr>
+                <tr>
+                    <td style="width: 100px;">Data points</td>
+                    <td style="width: 100%"><span id="experiment_data_points"></span></td>
+                </tr>
+                <tr>
+                    <td style="width: 100px;">Participants</td>
+                    <td style="width: 100%">{{ exp.subscription_set.all.count }}</td>
+                </tr>
+             
+            </table>
+            
+            
+        </div>
+        
+        <!--
+        <span style="margin-top: 0px; margin-bottom: 0px; padding-bottom:0px;"><span class="y_name">{{ exp.y_name }}</span> <span class="with" style=" ">with</span> <span class="x_name">{{ exp.x_name }}</span></h1> 
+        <span class="demphasize">created by</span> <a href="/user/{{ exp.user.username }}/">{{ exp.user.username }}</a><br />
+        {{ exp.description }} -->
+        
+        <!--
+        <div style=" padding: 10px 0px">
+            <span class="emphasize">{{ exp.y_name }}</span> measured in <span class="emphasize">{{ exp.y_units }}</span>.<br>
+            {{ exp.y_control }}<br><br>
+            
+            <span class="emphasize">{{ exp.x_name }}</span> is measured in <span class="emphasize">{{ exp.x_units }}</span>.<br>
+            {{ exp.x_control }}
+        </div> -->
+        
+        <!--
+            <p style="clear: both"></p>
+        
+            <div id="chartdiv" style="width: 740px; height: 400px"></div>
+        
+            <br />
+            <div id="regression" class="boxed" style="margin-left: auto; margin-right: auto; width: 400px;">
+                <h2>Analysis</h2>
+                <div id="regression_summary"></div>
+            </div>
+        
+            <div id="filter_selector" style="text-align: center; margin-top: 20px;">
+                <a id="filter_me" class="filter filter_unselected" href="" onclick="setfilter(1); return false;">me</a>
+                <a id="filter_friends" class="filter filter_unselected" href="" onclick="setfilter(2); return false;">friends</a>
+                <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setfilter(0); return false;">everyone</a>
+            </div>
+        
+            <script type="text/javascript">
+                var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "740", "400", "0", "0");
+                
+                function setfilter(filter) {
+                    chart.setXMLUrl("/data/{{ exp.pk }}/?filter="+ filter);
+                    analysis("/data/{{ exp.pk }}/?filter="+ filter);
+                    
+                    var me = document.getElementById("filter_me");
+                    var friend = document.getElementById("filter_friends");
+                    var everyone = document.getElementById("filter_everyone");
+            
+                    me.className = "filter filter_unselected";
+                    friend.className = "filter filter_unselected";
+                    everyone.className = "filter filter_unselected";
+                    
+                                    
+                    if (filter == 0) {
+                        everyone.className = "filter filter_selected";
+                    } else if (filter == 1) {
+                        me.className = "filter filter_selected";
+                    } else if (filter == 2) {
+                        friend.className = "filter filter_selected"
+                    }
+                }
+                setfilter(0);
+                chart.render("chartdiv");
+                
+            </script>
+        -->
+        <br />
+        <br />
+            
+        <div class="box_header">your data</div>
+        
+        <div style="width: 630px; padding: 10px;" class="centered_box rounded_small_box">
+            {% if not request.user.is_authenticated %}
+            <a href="/login">Login</a> to submit data and comments.
+            {% else %}
+                
+                <script type='text/javascript'>
+				  google.load('visualization', '1', {packages:['table']});
+				  google.setOnLoadCallback(loadUserTable);
+				</script>
+                <div id='table_div'></div>
+                
+                <!--
+                <table border="0" style="" cellspacing="0">
+                
+                {% if user_data or subscription %}
+                    <thead>
+                        <th>{{ exp.x_name }}<br />({{ exp.x_units}})</th>
+                        <th>{{ exp.y_name }}<br />({{ exp.y_units}})</th>
+                        <th>Comments</th>
+                    </thead>
+                {% endif %}
+                
+                {% if user_data %}
+                    
+                    {% for data in user_data %}
+                        <tr>
+                            <td align="center">{{ data.x }}</td>
+                            <td align="center">{{ data.y }}</td>
+                            <td align="center">{{ data.comments }}</td>
+                        </tr>
+                    {% endfor %}
+                        
+                {% endif %}
+                -->
+                {% if subscription %}
+                <input id="add_entry_button" type="submit" value="Add Entry" onclick="addDataEntry();" />
+                {% else %}
+                    <a href="/join/{{exp.pk}}/">Join experiment</a> to submit data.
+                {% endif %}    
+           
+            {% endif %}
+    	</div>
     </div>
+
+
+<p class="clear" style="clear:both"></p>
+
+
+<div class="experiment_comments_section centered_box" style="width: 650px; margin-top: 50px;">
+<div style="margin-bottom: 0px; padding-bottom: 0px;" class="box_header">{{ comments.count }} comments</div>
+<hr style="position: relative; left: -30px; margin-top: 0px; padding-top: 0px; width: 650px;" />
+    {% for cmnt in comments %}
+        <div style="margin-bottom: 10px;">
+            <span class="experiment_comment_username"> <a href="/user/{{cmnt.user.username}}/">{{cmnt.user.username}}</a></span><span class="experiment_comment_extra"> posted {{ cmnt.tstamp }}</span>
+            <div class="experiment_comment_text">
+              {{ cmnt.message }}
+            </div>
+        </div>
+ 
+
+    {% empty %}
+    No comments submitted.
+    {% endfor %}
+    <br />
+    
+    <div class="experiment_comments_submission">
+    {% if request.user.is_authenticated %}
+        <div width="400px">
+            <form action="/postcomm/{{ exp.pk }}/" method="post">
+           
+              <input type="hidden" name="title" value=""></input>
+              <textarea name="message" rows="3" cols="60" onfocus="if (! this.cleared) { this.value = ''; this.cleared = 1; }">Enter your comment</textarea><br />
+              <input type="submit" value="Post">
+            
+            </form>
+        </div>
 	{% endif %}	
+    </div>
 </div>
 
 {% endblock %}
