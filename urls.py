@@ -27,6 +27,7 @@ urlpatterns = patterns('',
 	(r'^friends/$', 'main.views.friends'),
     (r'^new$', 'main.views.new_experiment'),
     (r'^create$', 'main.views.create_experiment'),
+	(r'^createnew$', 'main.views.create_new'),
     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  settings.STATIC_DOC_ROOT}),
 	(r'^admin/', include(admin.site.urls)),
 )

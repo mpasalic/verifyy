@@ -27,27 +27,23 @@ Welcome!
 {% endblock %}
 
 {% block content %}
-<div class="space" style="min-height: 10px"></div>
-<div style="width: 500px; margin-left: auto; margin-right: auto;">
-	<div style="font-size: 14pt;">search for experiments...</div>
-    <form action="/search" method="get">
-        <input name="q" id="search_bar" type="textbox" value="{{ search }}">
-        {% if not search %}
-         <div class="help_text" style="width: 100%; text-align: right;">
-        	e.g how apples affect health<br>
-            how sleep affects marks
-    	</div>
-        {% endif %}
-    </form> 
 
-</div>
+<div class="space" style="min-height: 10px"></div>
 
 {% if search %}
-    <div style="min-height: 20px;">
-    </div>
-    <h1>Search results...</h1>
-    <div>
+
+    <div style="width: 650px;" class="rounded_big_box centered_box">
+    <div class="box_header">search results</div>
     {% include 'list.html' with no_results_message="No results founds" %}
+    </div>
+{% else %}
+    <div class="centered_box rounded_small_box" style="width: 200px; text-align: center;">
+     	<div class="box_header">examples</div>
+        <div style="text-align: center; font-size: 15px;">
+       		how apples affect health<br />
+            what apples affect<br />
+            what affects health
+        </div>
     </div>
 {% endif %}
 

@@ -258,12 +258,14 @@ def tokenize(c):
     splitter = re.compile(r'\W+')
     return map(unicode.lower, splitter.split(c))
 
+def create_new(request):
+	return render_to_response('new_experiment.html', { 'request': request  })
+
 def create_experiment(request):
 	if not request.user.is_authenticated():
 		return login(request)
-
 	try:
-                exp = Experiment()
+		exp = Experiment()
 		exp.x_name = request.POST['x']
 		exp.y_name = request.POST['y']
 		exp.description = request.POST['desc']
