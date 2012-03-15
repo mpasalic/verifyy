@@ -186,6 +186,29 @@ a:active {color: #368;}
 	color: #999;
 }
 
+.data_table_header_row{
+	
+}
+
+.data_table_row {
+	
+}
+
+.selectedTableRow {
+	
+}
+
+.data_table_header_cell {
+	font-family: 'Gentium Basic', serif;
+	font-size: 17px;
+}
+
+.data_table_cell {
+	/* font-family: 'Gentium Basic', serif;*/
+	font-family: Georgia, Helvetica, sans-serif;
+	font-size: 15px;
+}
+
 /* Experiment listing */
 
 .experiment_listing {

@@ -190,7 +190,10 @@ function drawUserTable(xmldata) {
 	data.setCell(dataElements.length, 2, "<input id=\"comment_entry\" type=\"text\" />")
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
-	table.draw(data, {showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
+	var cssClassNames = {headerRow: 'data_table_header_row', tableRow: 'data_table_row',
+						 selectedTableRow : 'data_table_selected_row', tableCell: 'data_table_cell',
+						 headerCell: 'data_table_header_cell' };
+	table.draw(data, {cssClassNames: cssClassNames, showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
 }
 
 function disableButton(button) {
