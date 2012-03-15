@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 
+{% block search %}{% endblock %}
+
 {% block content %}
-<div style="text-align: center">
+
+<div style="text-align: center; margin-top: 20px;">
     <form action="/login" method="post">
         Username: <input name="username" type="text" /><br />
         Password: <input name="password" type="password" /><br />

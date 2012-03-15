@@ -1,13 +1,5 @@
 
 
-<h1>Experiment</h1>
-How does <input name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)"> affect <input name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)">?<br>
-
-<h2>Experiment description</h2>
-<textarea name="desc" rows="10" cols="80">{{ exp.description }}</textarea><br><br>
-
-<h2>Measurements</h2>
-
 <script>
 typechange = function (variable) {
 	var shouldDisplayArea = document.getElementById(variable + 'type').value == 'c';
@@ -74,13 +66,45 @@ choiceClick = function (variable, index, plus) {
 };
 </script>
 
-<span name="x" class="experiment_name"></span> is a {% include 'datatype_choices.html' with var='x'%} measured in units of 
-<input name="xunits" type="text" value="{{ exp.x_units }}"><br>
-{% include 'datatype_choicesarea.html' with var='x'%}
-<span name="y" class="experiment_name"></span> is a {% include 'datatype_choices.html' with var='y'%} measured in units of 
-<input name="yunits" type="text" value="{{ exp.y_units }}"><br>
-{% include 'datatype_choicesarea.html' with var='y'%}
-<br>
+        <div class="box_header">experiment</div>
+
+        <div class="rounded_small_box experiment_box centered_box" style="width: 650px; font-size: 12px;">
+            <table class="rounded_table" style="table-layout: fixed; width: 100%;">
+                <tr>
+                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px;">how</td>
+                    <td valign="top" style="width: 170px;"><input style="width: 150px;" name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)"></td>
+                    <td style="width: 100%;">
+                    	{% include 'datatype_choices.html' with var='x'%}
+                        in units <input name="xunits" type="text" value="{{ exp.x_units }}">
+                        {% include 'datatype_choicesarea.html' with var='x'%}
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px;">affects</td>
+                    <td valign="top" style="width: 170px;"><input style="width: 150px;" name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)"></td>
+                    <td style="width: 100%">
+                    	{% include 'datatype_choices.html' with var='y'%}
+                    	in units <input name="yunits" type="text" value="{{ exp.y_units }}">
+                        {% include 'datatype_choicesarea.html' with var='x'%}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="font-size: 12px;">
+ 						<div style="font-size: 12px; padding: 0px; padding-left: 3px;">Describe how to run the experiment.</div>
+                        <textarea name="desc" style="width: 600px; height: 100px;">{{ exp.description }}</textarea>
+                        <br />
+                        <strong>Tips for experiments</strong>
+                    		<ul style="margin-top: 0px;">
+                            	<li>Describe how to measure the variables</li>
+                                <li>Asher, write some other tips</li>
+                            </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>
+	
+     
+<!--
 
 <br>
 
@@ -89,7 +113,7 @@ How is <span name="x" class="experiment_name">{{ exp.x_name }}</span> controlled
 
 How is <span name="y" class="experiment_name">{{ exp.y_name }}</span> measured?<br>
 <textarea name="ydesc" rows="5" cols="80">{{ exp.y_control }}</textarea><br><br>
-<!--
+
 <h2>Duration:</h2>        
 The experiment will run until:<br>
 <input type="radio" name="duration_type" checked><input name="num_days" type="text" value="60"> days.</input><br>

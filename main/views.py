@@ -75,7 +75,7 @@ def index(request):
 		fba.save()
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
-	return render_to_response('index.html', {# 'fullname': get_name(at), 
+	return render_to_response('frontpage.html', {# 'fullname': get_name(at), 
         'request': request, 'list':list })
 
 def login(request):
@@ -258,10 +258,12 @@ def tokenize(c):
     splitter = re.compile(r'\W+')
     return map(unicode.lower, splitter.split(c))
 
+def create_new(request):
+	return render_to_response('new_experiment.html', { 'request': request  })
+
 def create_experiment(request):
 	if not request.user.is_authenticated():
 		return login(request)
-
 	try:
 		exp = Experiment()
 		exp.x_name = request.POST['x']
