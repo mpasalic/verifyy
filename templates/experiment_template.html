@@ -9,6 +9,8 @@ typechange = function (variable) {
 		areaDiv.inited = true;
 	}
 	areaDiv.style['display'] = shouldDisplayArea ? 'block' : 'none';
+	unitsArea = document.getElementById('units_area_' + variable);
+	unitsArea.style['display'] = !shouldDisplayArea ? 'inline' : 'none';
 };
 
 getChoicesDiv = function (variable) {
@@ -71,21 +73,21 @@ choiceClick = function (variable, index, plus) {
         <div class="rounded_small_box experiment_box centered_box" style="width: 650px; font-size: 12px;">
             <table class="rounded_table" style="table-layout: fixed; width: 100%;">
                 <tr>
-                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px;">how</td>
+                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px; padding-top: 9px;">how</td>
                     <td valign="top" style="width: 170px;"><input style="width: 150px;" name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)"></td>
                     <td style="width: 100%;">
                     	{% include 'datatype_choices.html' with var='x'%}
-                        in units <input name="xunits" type="text" value="{{ exp.x_units }}">
+                        <span id="units_area_x">in units <input name="xunits" type="text" value="{{ exp.x_units }}"></span>
                         {% include 'datatype_choicesarea.html' with var='x'%}
                     </td>
                 </tr>
                 <tr>
-                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px;">affects</td>
+                    <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px; padding-top: 9px;">affects</td>
                     <td valign="top" style="width: 170px;"><input style="width: 150px;" name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)"></td>
                     <td style="width: 100%">
                     	{% include 'datatype_choices.html' with var='y'%}
-                    	in units <input name="yunits" type="text" value="{{ exp.y_units }}">
-                        {% include 'datatype_choicesarea.html' with var='x'%}
+                    	<span id="units_area_y">in units <input name="yunits" type="text" value="{{ exp.y_units }}"></span>
+                        {% include 'datatype_choicesarea.html' with var='y'%}
                     </td>
                 </tr>
                 <tr>
