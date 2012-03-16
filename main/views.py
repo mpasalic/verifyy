@@ -273,8 +273,6 @@ def create_experiment(request):
 		exp.y_units = request.POST['yunits']
 		exp.x_type = request.POST['xtype']
 		exp.y_type = request.POST['ytype']
-		exp.x_control = request.POST['xdesc']
-		exp.y_control = request.POST['ydesc']
 		exp.user = request.user
 		exp.vote = 0
 

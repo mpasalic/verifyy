@@ -10,14 +10,14 @@ DATA_TYPES = (
 
 class Experiment(models.Model):
 	x_name = models.CharField(max_length=256)
-	y_name = models.CharField(max_length=256)
-	description = models.TextField()
-	x_units = models.CharField(max_length=256)
-	x_control = models.TextField()
 	x_type = models.CharField(max_length=1, choices=DATA_TYPES)
-	y_units = models.CharField(max_length=256)
-	y_control = models.TextField()
+	x_units = models.CharField(max_length=256)
+	
+	y_name = models.CharField(max_length=256)
 	y_type = models.CharField(max_length=1, choices=DATA_TYPES)
+	y_units = models.CharField(max_length=256)
+	
+	description = models.TextField()
 	created = models.DateTimeField(auto_now=True)
 	user = models.ForeignKey(User)
 	
