@@ -114,30 +114,38 @@ def register(request):
 			return render_to_response('login.html', { 'info_message' : "Succesfully registered user", 'request': request  })
 
 def experiment(request, exp_id):
-	exp = get_object_or_404(Experiment, pk=exp_id)
-	data = Data.objects.filter(experiment = exp, user = request.user)
-	comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
-	
-	sub = False
-	try:
-		if request.user.is_authenticated():
-			sub = Subscription.objects.get(experiment = exp, user = request.user)
-	except (Subscription.DoesNotExist):
-		sub = False
-		
-	vote = exp.votes()
-	
-	regression = LinearRegression()
-	regression.analyse(exp.data_set.all())
+    exp = get_object_or_404(Experiment, pk=exp_id)
+    data = Data.objects.filter(experiment = exp, user = request.user)
+    comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
+    
+    sub = False
+    try:
+        if request.user.is_authenticated():
+            sub = Subscription.objects.get(experiment = exp, user = request.user)
+    except (Subscription.DoesNotExist):
+        sub = False
+    
+    vote = exp.votes()
+    regression = LinearRegression()
+    regression.analyse(exp.data_set.all())
 
-	
-	return render_to_response('experiment.html', 
-							{'exp': exp, 
-							'request': request, 
-							'user_data': data, 
-							'subscription': sub,
-							#'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
-							'comments': comm})
+    params = {
+        'exp': exp, 
+        'request': request, 
+        'user_data': data, 
+        'subscription': sub,
+        #'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
+        'comments': comm,
+        'x_choices': None,
+        'y_choices': None
+    }
+    
+    if exp.x_type == 'c':
+        params['x_choices'] = ChoiceOptions.objects.filter(experiment=exp, var='x')
+    if exp.y_type == 'c':
+        params['y_choices'] = ChoiceOptions.objects.filter(experiment=exp, var='y')
+    
+    return render_to_response('experiment.html', params)
 
 
 def postcomm(request, exp_id):

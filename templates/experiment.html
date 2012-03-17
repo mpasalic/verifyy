@@ -185,8 +185,17 @@ function drawUserTable(xmldata) {
 		data.setCell(i, 2, dataElement.getAttribute("comment"));
 	}
 	
-	data.setCell(dataElements.length, 0, "<input id=\"x_entry\" type=\"text\" />")
-	data.setCell(dataElements.length, 1, "<input id=\"y_entry\" type=\"text\" />")
+    var xinputCpy = dojo.clone( dojo.byId('x_entry_prototype') );
+    var yinputCpy = dojo.clone( dojo.byId('y_entry_prototype') );
+    xinputCpy.id = 'x_entry';
+    yinputCpy.id = 'y_entry';    
+    var xinputWrap = document.createElement("div");
+    var yinputWrap = document.createElement("div");
+    dojo.place(xinputCpy, xinputWrap);
+    dojo.place(yinputCpy, yinputWrap);    
+    
+	data.setCell(dataElements.length, 0, xinputWrap.innerHTML)
+	data.setCell(dataElements.length, 1, yinputWrap.innerHTML)
 	data.setCell(dataElements.length, 2, "<input id=\"comment_entry\" type=\"text\" />")
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
@@ -203,12 +212,12 @@ function enableButton(button) {
 
 
 function addDataEntry() {
-	
+    
 	var x = document.getElementById("x_entry").value;
 	var y = document.getElementById("y_entry").value;
 	var comment = document.getElementById("comment_entry").value;
-	
-	disableButton(document.getElementById("add_entry_button"));
+    
+    disableButton(document.getElementById("add_entry_button"));
 	
 	var url = "/submit/{{ exp.pk }}/";
 	var params = "x=" + encodeURI (x) + "&y=" + encodeURI (y) + "&comments=" + encodeURI (comment);
@@ -260,7 +269,36 @@ function addDataEntry() {
 
 {% block content %}
 		
+    <div style="display:none;" id="hidden_inputs"> 
+        <!-- a wrapper for x_choices input controls -->
+        <div>
+        {% if x_choices != None %}
+                <select id="x_entry_prototype" name="x_entry">
+                    {%  for choice in x_choices %}
+                        <option value="{{choice.order}}">{{ choice.option }}</option>
+                    {% endfor %}
+                </select>
+        {% else %}
+            <input id="x_entry_prototype" type="text" />
+        {% endif %}
+        </div>
+        
+        <!-- a wrapper for y_choices input controls -->
+        <div>
+        {% if y_choices != None %}
+                <select id="y_entry_prototype" name="y_entry">
+                    {%  for choice in y_choices %}
+                        <option value="{{choice.order}}">{{ choice.option }}</option>
+                    {% endfor %}
+                </select>
+        {% else %}
+            <input id="y_entry_prototype" type="text" />
+        {% endif %}
+        </div>
 
+        
+    </div>
+    
     <div style="width: 700px; margin-top: 30px;" class="experiment centered_box rounded_shaded_big_box">
     	<div style="position: relative">
             <div class="experiment_vote_box" style="position: absolute; margin-left: 10px; width: 60px; height: 70px; top: 20px; left: -100px;">
