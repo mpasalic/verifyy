@@ -3,7 +3,14 @@
 {% block title %}Experiment{% endblock %}
 
 {% block extrahead %}
-<script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
+<!-- TODO: GET RID OF THIS! <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script> -->
+
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+<!--[if IE]>
+<script type="text/javascript" src="static/Charts/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
+    
 <script language="javascript">
 function vote(val) {
 		
@@ -35,8 +42,8 @@ function vote(val) {
 	xmlhttp.send();
 }
 
- function drawChart(xmldata) {
-
+/*
+ function drawChartOLD(xmldata) {
 	var data = new google.visualization.DataTable();
 	
 	var chartElement = xmldata.getElementsByTagName("chart")[0];
@@ -77,7 +84,126 @@ function vote(val) {
 	document.getElementById("experiment_data_points").innerHTML = dataElements.length;
 	total = xmldata.getElementsByTagName("regression")[0];
 	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
+}*/
+
+function drawChart(xmldata) {
+    //1. Fill in the data array
+    var datasetElement = xmldata.getElementsByTagName("dataset")[0];
+	var dataElements = datasetElement.getElementsByTagName("set");
+    
+    var data = [];
+    
+    for (var i = 0; i < dataElements.length; ++i) {
+        var x = dataElements[i].getAttribute("x");
+        var y = dataElements[i].getAttribute("y");
+        data.push([x,y]);
+    }
+    
+    //2. Data Array Filled.
+    //   Create labels
+    labels = ['TODO_xaxisname', xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')];
+    
+    var orig_colors = [];
+    
+    //3. Draw Scatter Plot of data points
+    graph = new Dygraph(
+        document.getElementById('chart_div'),
+        data,
+        {
+            labels: labels,
+            drawPoints: true,
+            strokeWidth: 0.0,
+            drawCallback: function(g, is_initial) {
+                if (!is_initial) { return; }
+                var c = g.getColors();
+                for (var i = 0; i < c.length; i++) orig_colors.push(c[i]);
+            }
+        }
+    );
+    
+    //4. Compute the points to draw the piecewise parametric curve over data.
+    //   The way this works is that a parametric curve is a vector function
+    //   [x, y] = f(t). We use xml to pass function(t, [i]) {} functions to plot here
+    //
+    //   Also, i is the optional parameter denoting the index of interval to draw.
+    //   0..tranges intervals are processed
+    //   
+    //   We also need to insert points from the original data
+    //   TODO: Make original points insertion code more efficient? Also, we destroy data
+    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
+    var pc_data = [];
+    
+    var pcurve = xmldata.getElementsByTagName('parametric_curve')[0]; //Can always add more later
+    var tranges = parseInt(pcurve.getElementsByTagName('t_count')[0].textContent);
+    // Number of points to generate per parametric range. Use a hardcoded value for now
+    var points = Math.round(1000 / tranges);
+    eval('x_func = ' + pcurve.getElementsByTagName('x_func')[0].textContent);
+    eval('y_func = ' + pcurve.getElementsByTagName('y_func')[0].textContent);
+    
+    for (var ti = 0; ti < tranges; ++ti) { //iterate over all piecewise ranges
+        for (var p = 0; p < (points + 1); ++p) { //iterate by regular steps
+            var t = p / (points + 1); //normalize t in interval [0,1]
+            var point = [ x_func(t,ti), y_func(t,ti) ];
+            var entry = [];
+            entry.push(point[0]); //push the x-coord of the entry
+            if (point[0] < data[0][0]) {
+                entry.push(null); //if there is no data for original series, skip it
+            } else {
+                while (point[0] > data[0][0]) {
+                    datapt = data.shift();
+                    entry = [];
+                    entry.push(datapt[0], datapt[1]);
+                    pc_data.push(entry);
+                }
+                entry = [];
+                entry.push(point[0]);
+            }
+            entry.push( point[1] );
+            pc_data.push( entry );
+        }
+    }
+    
+    //5. Draw Regression on the plot
+    pc_labels = [];
+    pc_colors = [];
+    pc_opts = {};
+    pc_opts['axes']={};
+    
+    for (var i = 0; i < labels.length; ++i) {
+        pc_labels.push(labels[i]);
+        if (i > 0) { 
+            pc_colors.push(orig_colors[i-1]);
+            var label = labels[i] + " Regression";
+            pc_labels.push(label);
+            var c = new RGBColor(orig_colors[i-1]);
+            c.r = Math.floor(255 - 0.5 * (255 - c.r));
+            c.g = Math.floor(255 - 0.5 * (255 - c.g));
+            c.b = Math.floor(255 - 0.5 * (255 - c.b));
+            pc_colors.push(c.toHex());
+            pc_opts[label] = {
+                drawPoints: false,
+                strokeWidth: 1.0
+            };
+        }
+    }
+    
+    pc_opts['axes']['x'] = {
+                valueFormatter: function (p) { return p.toFixed(2); },
+                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+            };
+    pc_opts['axes']['y'] = {
+                valueFormatter: function (p) { return p.toFixed(2); },
+                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+            };
+    
+    pc_opts.file = pc_data;
+    pc_opts.labels = pc_labels;
+    pc_opts.colors = pc_colors;
+    graph.updateOptions(pc_opts);
 }
+
+
+
 
 function loadChartData(url) {
 	

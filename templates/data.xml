@@ -35,5 +35,13 @@
 {% endif %}
 	</regression>
 
+{% if regression %}
+    <parametric_curve>
+        <t_count>1</t_count>
+        <x_func>function(t) { return ({{ xmax }} - {{ xmin }})*t + {{ xmin }}; }</x_func>
+        <y_func>function(t) { return {{ regression.intercept }} + {{ regression.slope }} * (({{ xmax }} - {{ xmin }})*t + {{ xmin }}); }</y_func>
+    </parametric_curve>
+{% endif %}
+    
 </extra>
 </chart>

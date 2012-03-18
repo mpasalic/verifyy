@@ -126,9 +126,12 @@ def experiment(request, exp_id):
         sub = False
     
     vote = exp.votes()
-    regression = LinearRegression()
-    regression.analyse(exp.data_set.all())
-
+    
+    # NOTE: -Alex
+    #   We don't need to run regression here, because we will load it
+    #   in AJAX way from the page by GET data/...
+    #
+    
     params = {
         'exp': exp, 
         'request': request, 
