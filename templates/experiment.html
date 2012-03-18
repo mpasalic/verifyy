@@ -609,14 +609,16 @@ function addDataEntry() {
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
 					<td style="width: 100%">
-					{% include 'experiment_print_type.html' with var='x' %}
+					One of {% if exp.x_type = 'i' %}{{ exp.value_desc }}{% endif %}
+					{% if exp.x_type == 'c' %}{% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
 					</td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
 					<td style="width: 100%">
-                    {% include 'experiment_print_type.html' with var='y' %}
+                    One of {% if exp.y_type = 'i' %}{{ exp.value_desc }}{% endif %}
+					{% if exp.y_type == 'c' %}{% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
 					<td style="width: 100%">
                 </tr>
                 <tr>

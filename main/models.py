@@ -28,7 +28,12 @@ class Experiment(models.Model):
 		
 		total = (upvotes - downvotes)
 		return total
-		
+	
+	def choicesX(self):
+		return self.choiceoptions_set.filter(var='x')
+	def choicesY(self):
+		return self.choiceoptions_set.filter(var='y')
+	
 	votetotal = models.IntegerField(default=0)
 
 	def __unicode__(self):
