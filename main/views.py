@@ -388,62 +388,62 @@ def create_new(request):
 	return render_to_response('new_experiment.html', { 'request': request  })
 
 def create_experiment(request):
-	if not request.user.is_authenticated():
-		return login(request)
-	try:
-		exp = Experiment()
-		exp.x_name = request.POST['x']
-		exp.y_name = request.POST['y']
-		exp.description = request.POST['desc']
-		exp.x_units = request.POST['xunits']
-		exp.y_units = request.POST['yunits']
-		exp.x_type = request.POST['xtype']
-		exp.y_type = request.POST['ytype']
-		exp.user = request.user
-		exp.vote = 0
-
-	except (KeyError):
-		return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
-	else:
-		exp.save()
-
-		if exp.x_type == 'c':
-			i = 0
-			while ('choice_x_%d' % i) in request.POST:
-				option = ChoiceOptions()
-				option.option = request.POST[('choice_x_%d' % i)]
-				option.order = i
-				option.experiment = exp
-				option.var = 'x'
-				option.save()
-				i = i + 1
-		
-		if exp.y_type == 'c':
-			i = 0
-			while ('choice_y_%d' % i) in request.POST:
-				option = ChoiceOptions()
-				option.option = request.POST[('choice_y_%d' % i)]
-				option.order = i
-				option.experiment = exp
-				option.var = 'y'
-				option.save()
-				i = i + 1
-		
-		def index_contents(c):
-			for w in tokenize(c):
-				ind = Index()
-				ind.doc = exp
-				ind.word = w
-				ind.save()
-				index_contents(exp.x_name)
-				index_contents(exp.y_name)
-				index_contents(exp.description)
-
-				at = get_auth_token(request)
-				put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!"
-					% (exp.y_name + " with " + exp.x_name) )
-
-		return redirect("/view/%d/" % (exp.id))
+    if not request.user.is_authenticated():
+        return login(request)
+    try:
+        exp = Experiment()
+        exp.x_name = request.POST['x']
+        exp.y_name = request.POST['y']
+        exp.description = request.POST['desc']
+        exp.x_units = request.POST['xunits']
+        exp.y_units = request.POST['yunits']
+        exp.x_type = request.POST['xtype']
+        exp.y_type = request.POST['ytype']
+        exp.user = request.user
+        exp.vote = 0
+        
+        exp.save()
+        
+        # TODO: in options, check for unicodoce
+        if exp.x_type == 'c':
+            i = 0
+            while ('choice_x_%d' % i) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_x_%d' % i)]
+                if len(tokenize(option.option)) > 0:
+                    option.order = i
+                    option.experiment = exp
+                    option.var = 'x'
+                    option.save()
+                i = i + 1
+        
+        if exp.y_type == 'c':
+            i = 0
+            while ('choice_y_%d' % i) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_y_%d' % i)]
+                if len(tokenize(option.option)) > 0:
+                    option.order = i
+                    option.experiment = exp
+                    option.var = 'y'
+                    option.save()
+                i = i + 1
+        def index_contents(c):
+            for w in tokenize(c):
+                ind = Index()
+                ind.doc = exp
+                ind.word = w
+                ind.save()
+                index_contents(exp.x_name)
+                index_contents(exp.y_name)
+                index_contents(exp.description)
+                
+                at = get_auth_token(request)
+                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
+    except (KeyError):
+        return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
+    
+    return redirect("/view/%d/" % (exp.id))
 		
 def join(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)

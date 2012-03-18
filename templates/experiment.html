@@ -171,13 +171,14 @@ function drawCandleStickChart(xmldata) {
         var levelBinStr = x_mappings[i].getAttribute('to');
         mapping[levelBin] = levelBinStr;
     }
-        
+    
     var extraElement = xmldata.getElementsByTagName("extra")[0];
 	var candles = extraElement.getElementsByTagName("candle");
     
     for (var i = 0; i < candles.length; ++i) {
         var candle = candles[i];
-        var label = levelBinStr[ "" + parseInt(candle.getAttribute('bin')) ];
+        var alias =  candle.getAttribute('bin');
+        var label = mapping[ alias ];
         var bmin = parseFloat(candle.getAttribute('min'));
         var bmax = parseFloat(candle.getAttribute('max'));
         var bMSigma = parseFloat(candle.getAttribute('open'));
