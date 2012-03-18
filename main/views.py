@@ -193,7 +193,7 @@ def submit(request, exp_id):
             y_enum_objs = ChoiceOptions.objects.filter(experiment=exp, var='y')
             y_enum = set()
             for obj in y_enum_objs:
-                x_enum.add(obj.order)
+                y_enum.add(obj.order)
         
         try:
             x_val = parseTypeOrError(xraw, exp.x_type, x_enum)
