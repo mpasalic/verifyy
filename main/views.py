@@ -1,7 +1,9 @@
 # Create your views here.
 
 from main.models import *
-from main.analysis import Regression, LinearRegression
+from main.statistics.common import Analysis, Regression
+from main.statistics.linear_regression import LinearRegression
+from main.statistics.one_factor import OneFactorAnalysis
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -207,42 +209,116 @@ def get_data(request, exp_id):
 			return data
 			
 	return Data.objects.all().filter( experiment=exp )
-	
+
+REGRESSION_KIND         = 1
+SINGLE_FACTOR_KIND      = 2
+DISCRETE_OPT_KIND       = 3
 
 def data(request, exp_id):
-	exp = get_object_or_404(Experiment, pk=exp_id)
-	
-	xmin = 0
-	xmax = 0
-	ymin = 0
-	ymax = 0
-	
-	data = get_data(request, exp_id)
-	
-	for item in data:
-		if xmin > item.x:
-			xmin = item.x
-		if xmax < item.x:
-			xmax = item.x
-		if ymin > item.y:
-			ymin = item.y
-		if ymax < item.y:
-			ymax = item.y
-			
-	xaxis = []
-	
-	for i in range(10):
-		xaxis.append( ((xmax - xmin)/10.0)*(i) + xmin )
-		
-	regression = LinearRegression()
-	
-	try:
-		regression.analyse(data)
-	except (ZeroDivisionError):
-		regression = False
-	
-	return render_to_response('data.xml', {'xaxis': xaxis, 'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax,
-		'exp': exp, 'data':data, 'regression': regression, 'request': request }, mimetype="application/xml")
+    exp = get_object_or_404(Experiment, pk=exp_id)
+    
+    #Possible experiment types:
+    # exp.x_type/exp.y_type:
+    #   Also note: time data and timeperiod data is also a bit different, but
+    #              both are subclasses of real data.
+    #       Everything except for 'c' pretty much stands for real-valued data
+    #
+    #   rr - real to real data, charts & regression analysis
+    #   cr - choice to real - perform one-factor experiment analysis, draw candlestick charts
+    #   cc - choice to choice - perform Bayesian analysis, draw column charts
+    #   rc - FORBIDDEN, always should have X (factor) as a discrete variable in this case
+    
+    data = get_data(request, exp_id)
+    analysis = Analysis()
+    renderparams = {
+        'exp': exp, 
+        'data':data, 
+        'request': request,
+        #
+        'regression': False,
+        'onefactor': False,
+        'discrete': False
+    }
+    kind = -1
+    if exp.x_type != 'c':
+        if exp.y_type != 'c':
+            kind = REGRESSION_KIND
+            analysis = LinearRegression()
+        else:
+            raise KeyError("This kind of experiment should not exist!")
+    else:
+        # Fetch the possible values of X:
+        xopts = ChoiceOptions.objects.filter(experiment=exp,var='x')
+        xoptsDataForm = map(lambda opt: opt.order, xopts)
+        xoptsMapping = map(lambda opt: [opt.order, opt.option], xopts)
+        renderparams['x_mapping'] = xoptsMapping
+        
+        if exp.y_type != 'c':
+            kind = SINGLE_FACTOR_KIND
+            analysis = OneFactorAnalysis(xoptsDataForm)
+        else:
+            # Fetch the possible values of Y:
+            yopts = ChoiceOptions.objects.filter(experiment=exp,var='y')
+            yoptsDataForm = map(lambda opt: opt.order, yopts)
+            yoptsMapping = map(lambda opt: [opt.order, opt.option], yopts)
+            renderparams['y_mapping'] = yoptsMapping
+            
+            #TODO: Implement this
+            kind = DISCRETE_OPT_KIND
+    #endif 
+    
+    try:
+        analysis.analyse(data)
+        
+        if kind == REGRESSION_KIND:
+            renderparams['regresion'] = analysis
+        elif kind == SINGLE_FACTOR_KIND:
+            renderparams['onefactor'] = analysis
+        elif kind == DISCRETE_OPT_KIND:
+            renderparams['discrete'] = analysis
+        
+        # TODO: Re-add ZeroDivisionError
+    except (TypeError): #(RuntimeError, TypeError, NameError):
+        #TODO: ALERT
+        pass
+    
+    if kind == REGRESSION_KIND:
+        # TODO: I think we shouldn't do it on our side
+        #   move to the client?
+        xmin = 0
+        xmax = 0
+        ymin = 0
+        ymax = 0
+        for item in data:
+            if xmin > item.x:
+                xmin = item.x
+            if xmax < item.x:
+                xmax = item.x
+            if ymin > item.y:
+                ymin = item.y
+            if ymax < item.y:
+                ymax = item.y
+        renderparams['xmin'] = xmin
+        renderparams['xmax'] = xmax
+        renderparams['ymin'] = ymin
+        renderparams['ymax'] = ymax
+    elif kind == SINGLE_FACTOR_KIND:
+        # Include candle parameters to draw here
+        intervals = map(lambda bin: [bin] + analysis.stdDev1Intervals[bin], analysis.stdDev1Intervals)
+        renderparams['x_intervals'] = intervals
+    return render_to_response('data.xml', renderparams, mimetype="application/xml")
+
+	#xaxis = []
+	#for i in range(10):
+	#	xaxis.append( ((xmax - xmin)/10.0)*(i) + xmin )
+	#	
+	#regression = LinearRegression()
+	#
+	#try:
+	#	regression.analyse(data)
+	#except (ZeroDivisionError):
+	#	regression = False
+
 
 def edit(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)

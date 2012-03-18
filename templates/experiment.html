@@ -10,7 +10,12 @@
 <script type="text/javascript" src="static/Charts/excanvas.js"></script>
 <![endif]-->
 <script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
-    
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+    google.load('visualization', '1', {packages: ['corechart']});
+</script>
+
 <script language="javascript">
 function vote(val) {
 		
@@ -86,7 +91,43 @@ function vote(val) {
 	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
 }*/
 
+
+function drawCandleStickChart(xmldata) {
+    var mapping = {};
+    var data = [];
+    
+    var mappingNode = xmldata.getElementsByTagName('x_mapping')[0];
+    var x_mappings = mappingNode.getElementsByTagName('mapping');
+    
+    for (var i = 0; i < x_mappings.length; ++i) {
+        var levelBin = x_mappings[i].getAttribute('from');
+        var levelBinStr = x_mappings[i].getAttribute('to');
+        mapping[levelBin] = levelBinStr;
+    }
+        
+    var extraElement = xmldata.getElementsByTagName("extra")[0];
+	var candles = extraElement.getElementsByTagName("candle");
+    
+    for (var i = 0; i < candles.length; ++i) {
+        var candle = candles[i];
+        var label = levelBinStr[ candle.getAttribute('bin') ];
+        var bmin = parseFloat(candle.getAttribute('min'));
+        var bmax = parseFloat(candle.getAttribute('max'));
+        var bMSigma = parseFloat(candle.getAttribute('open'));
+        var bPSigma = parseFloat(candle.getAttribute('close'));
+        data.push([label, bmin, bMSigma, bPSigma, bmax]);
+    }
+    
+	var dataTbl = google.visualization.arrayToDataTable(data, true);
+    
+    var options = {legend:'none'};
+    
+    var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
+    chart.draw(dataTbl, options);
+}
+
 function drawChart(xmldata) {
+    
     //1. Fill in the data array
     var datasetElement = xmldata.getElementsByTagName("dataset")[0];
 	var dataElements = datasetElement.getElementsByTagName("set");
@@ -202,8 +243,20 @@ function drawChart(xmldata) {
     graph.updateOptions(pc_opts);
 }
 
-
-
+/* 
+ * This function looks at the data received and draws an appropriate
+ * graphical object.
+ *
+ */
+function displayLoadedData(xmldata) {
+    var regressions = xmldata.getElementsByTagName("regression");
+    var onefactors = xmldata.getElementsByTagName("onefactor");
+    var discretes = xmldata.getElementsByTagName("discrete");
+    
+    if (regressions.length > 0) drawChart(xmldata);
+    if (onefactors.length > 0) drawCandleStickChart(xmldata);
+    if (discretes.length > 0) alert("[NOTIMPL] DRAW BOX PLOT");
+}
 
 function loadChartData(url) {
 	
@@ -226,7 +279,7 @@ function loadChartData(url) {
 	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			var xmldata = xmlhttp.responseXML;
-			drawChart(xmldata);
+			displayLoadedData(xmldata);
 		}
 	}
 

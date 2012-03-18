@@ -1,10 +1,13 @@
 <chart palette='3' caption='{{ exp.y_name }} with {{ exp.x_name }}' yAxisName='{{ exp.y_units }}' xAxisName='{{ exp.x_units }}' showLegend='0' showLabels='1' xAxisMaxValue='{{ xmax }}' xAxisMinValue='{{ xmin }}' >
 
+
+{% if False %}
 <categories verticalLineThickness='1'>
 {% for axi in xaxis %}
 	<category label='{{ axi }}' x='{{ axi }}' showVerticalLine='1'/>
 {% endfor %}
 </categories>
+{% endif %}
 
 <dataset seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 {% for datapoint in data %}
@@ -12,6 +15,7 @@
 {% endfor %}
 </dataset>
 
+{% if False %}
 <styles>
 	<definition>
 		<style name="myCaptionFont" type="font" font="Arial" size="14" bold="1" underline="1" /> 
@@ -20,28 +24,44 @@
 		<apply toObject="Caption" styles="myCaptionFont" /> 
 	</application>
 </styles>
+{% endif %}
 
 <extra>
+
+{% if regression %}
 	<xmin>{{ xmin }}</xmin>
 	<ymin>{{ ymin }}</ymin>
 	<xmax>{{ xmax }}</xmax>
 	<ymax>{{ ymax }}</ymax>
-
+    
 	<regression>
-{% if regression %}
 		{{ regression.summary }}
-{% else %}
-	Unable to find any correlation. 
-{% endif %}
 	</regression>
-
-{% if regression %}
+    
     <parametric_curve>
         <t_count>1</t_count>
         <x_func>function(t) { return ({{ xmax }} - {{ xmin }})*t + {{ xmin }}; }</x_func>
         <y_func>function(t) { return {{ regression.intercept }} + {{ regression.slope }} * (({{ xmax }} - {{ xmin }})*t + {{ xmin }}); }</y_func>
     </parametric_curve>
 {% endif %}
-    
+
+{% if onefactor %}
+    <onefactor>
+        <x_mapping>
+            {% for x, xOpt in x_mapping %}
+                <mapping from="{{ x }}" to="{{ xOpt }}" />
+            {% endfor %}
+        </x_mapping>
+        
+        <x_intervals>
+            {% for bin, bmin, bmls, bmms, bmax in x_intervals %}        
+                <candle bin="{{ bin }}" min="{{ bmin }}" max="{{ bmax }}" open="{{ bmls }}" close="{{ bmms }} " />
+            {% endfor %}
+        </x_intervals>
+    </onefactor>
+{% endif %}
+
+
+
 </extra>
 </chart>
