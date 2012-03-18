@@ -1,7 +1,12 @@
 # Create your views here.
 
 from main.models import *
-from main.analysis import Regression, LinearRegression
+from main.conversion import parseTypeOrError
+
+from main.statistics.common import Analysis, Regression
+from main.statistics.linear_regression import LinearRegression
+from main.statistics.one_factor import OneFactorAnalysis
+from main.statistics.bayessian import SimpleBayessianAnalysis
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -114,30 +119,41 @@ def register(request):
 			return render_to_response('login.html', { 'info_message' : "Succesfully registered user", 'request': request  })
 
 def experiment(request, exp_id):
-	exp = get_object_or_404(Experiment, pk=exp_id)
-	data = Data.objects.filter(experiment = exp, user = request.user)
-	comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
-	
-	sub = False
-	try:
-		if request.user.is_authenticated():
-			sub = Subscription.objects.get(experiment = exp, user = request.user)
-	except (Subscription.DoesNotExist):
-		sub = False
-		
-	vote = exp.votes()
-	
-	regression = LinearRegression()
-	regression.analyse(exp.data_set.all())
-
-	
-	return render_to_response('experiment.html', 
-							{'exp': exp, 
-							'request': request, 
-							'user_data': data, 
-							'subscription': sub,
-							#'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
-							'comments': comm})
+    exp = get_object_or_404(Experiment, pk=exp_id)
+    data = Data.objects.filter(experiment = exp, user = request.user)
+    comm = DiscussionMessage.objects.filter(experiment = exp).order_by('timestamp').order_by('branch')[:50]
+    
+    sub = False
+    try:
+        if request.user.is_authenticated():
+            sub = Subscription.objects.get(experiment = exp, user = request.user)
+    except (Subscription.DoesNotExist):
+        sub = False
+    
+    vote = exp.votes()
+    
+    # NOTE: -Alex
+    #   We don't need to run regression here, because we will load it
+    #   in AJAX way from the page by GET data/...
+    #
+    
+    params = {
+        'exp': exp, 
+        'request': request, 
+        'user_data': data, 
+        'subscription': sub,
+        #'comments': [DiscussionMessage(experiment=exp,title="", message="Hello!") ] })
+        'comments': comm,
+        'x_choices': None,
+        'y_choices': None
+    }
+    
+    if exp.x_type == 'c':
+        params['x_choices'] = ChoiceOptions.objects.filter(experiment=exp, var='x')
+    if exp.y_type == 'c':
+        params['y_choices'] = ChoiceOptions.objects.filter(experiment=exp, var='y')
+    
+    return render_to_response('experiment.html', params)
 
 
 def postcomm(request, exp_id):
@@ -157,20 +173,39 @@ def submit_error(var_name):
 	return "'%s' must be a whole number." % var_name;
 	
 def submit(request, exp_id):
-	if(request.method == 'POST'):
-		exp = get_object_or_404(Experiment, pk=exp_id)
-		try:
-			x_val = int(request.POST['x'])
-		except ValueError:
-			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
-		try:
-			y_val = int(request.POST['y'])
-		except ValueError:
-			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.y_name)})
-			
-		data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
-		data.save()
-	return redirect("/view/%d/" % (exp.id));
+    if(request.method == 'POST'):
+        exp = get_object_or_404(Experiment, pk=exp_id)
+        
+        xraw = request.POST['x'];
+        yraw = request.POST['y'];
+        x_enum = None
+        y_enum = None
+        
+        # See what kind of experiment are we doing:
+        
+        if exp.x_type == 'c':
+            x_enum_objs = ChoiceOptions.objects.filter(experiment=exp, var='x')
+            x_enum = set()
+            for obj in x_enum_objs:
+                x_enum.add(obj.order)
+        
+        if exp.y_type == 'c':
+            y_enum_objs = ChoiceOptions.objects.filter(experiment=exp, var='y')
+            y_enum = set()
+            for obj in y_enum_objs:
+                y_enum.add(obj.order)
+        
+        try:
+            x_val = parseTypeOrError(xraw, exp.x_type, x_enum)
+            y_val = parseTypeOrError(yraw, exp.y_type, y_enum)
+            
+            data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
+            data.save()
+        
+        except ValueError:
+            return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
+        
+    return redirect("/view/%d/" % (exp.id));
 	
 def new_experiment(request):
     return render_to_response('new_experiment.html', {'request': request})
@@ -196,42 +231,133 @@ def get_data(request, exp_id):
 			return data
 			
 	return Data.objects.all().filter( experiment=exp )
-	
+
+REGRESSION_KIND         = 1
+SINGLE_FACTOR_KIND      = 2
+DISCRETE_OPT_KIND       = 3
 
 def data(request, exp_id):
-	exp = get_object_or_404(Experiment, pk=exp_id)
-	
-	xmin = 0
-	xmax = 0
-	ymin = 0
-	ymax = 0
-	
-	data = get_data(request, exp_id)
-	
-	for item in data:
-		if xmin > item.x:
-			xmin = item.x
-		if xmax < item.x:
-			xmax = item.x
-		if ymin > item.y:
-			ymin = item.y
-		if ymax < item.y:
-			ymax = item.y
-			
-	xaxis = []
-	
-	for i in range(10):
-		xaxis.append( ((xmax - xmin)/10.0)*(i) + xmin )
-		
-	regression = LinearRegression()
-	
-	try:
-		regression.analyse(data)
-	except (ZeroDivisionError):
-		regression = False
-	
-	return render_to_response('data.xml', {'xaxis': xaxis, 'xmin': xmin, 'xmax': xmax, 'ymin': ymin, 'ymax': ymax,
-		'exp': exp, 'data':data, 'regression': regression, 'request': request }, mimetype="application/xml")
+    exp = get_object_or_404(Experiment, pk=exp_id)
+    
+    #Possible experiment types:
+    # exp.x_type/exp.y_type:
+    #   Also note: time data and timeperiod data is also a bit different, but
+    #              both are subclasses of real data.
+    #       Everything except for 'c' pretty much stands for real-valued data
+    #
+    #   rr - real to real data, charts & regression analysis
+    #   cr - choice to real - perform one-factor experiment analysis, draw candlestick charts
+    #   cc - choice to choice - perform Bayesian analysis, draw column charts
+    #   rc - FORBIDDEN, always should have X (factor) as a discrete variable in this case
+    #   *t - FORBIDDEN, it does not make sense to analyze TIME as the dependent variable
+    
+    data = get_data(request, exp_id)
+    analysis = Analysis()
+    renderparams = {
+        'exp': exp, 
+        'data':data, 
+        'request': request,
+        #
+        'regression': False,
+        'onefactor': False,
+        'discrete': False
+    }
+    kind = -1
+    
+    if exp.y_type == 't':
+        raise KeyError("This kind of experiment should not exist!")
+    
+    if exp.x_type != 'c':
+        if exp.y_type != 'c':
+            kind = REGRESSION_KIND
+            analysis = LinearRegression()
+        else:
+            raise KeyError("This kind of experiment should not exist!")
+    else:
+        # Fetch the possible values of X:
+        xopts = ChoiceOptions.objects.filter(experiment=exp,var='x')
+        xoptsDataForm = map(lambda opt: opt.order, xopts)
+        xoptsDataMap = {}
+        for xopt in xopts:
+            xoptsDataMap[xopt.order] = xopt.option
+        renderparams['x_mapping'] = xoptsDataMap
+        
+        if exp.y_type != 'c':
+            kind = SINGLE_FACTOR_KIND
+            analysis = OneFactorAnalysis(xoptsDataForm)
+        else:
+            # Fetch the possible values of Y:
+            yopts = ChoiceOptions.objects.filter(experiment=exp,var='y')
+            yoptsDataForm = map(lambda opt: opt.order, yopts)
+            yoptsDataMap = {}
+            for yopt in yopts:
+                yoptsDataMap[yopt.order] = yopt.option
+            renderparams['y_mapping'] = yoptsDataMap
+            
+            analysis = SimpleBayessianAnalysis(xoptsDataForm, yoptsDataForm)
+            kind = DISCRETE_OPT_KIND
+    #endif 
+    
+    try:
+        analysis.analyse(data)
+        
+        if kind == REGRESSION_KIND:
+            renderparams['regression'] = analysis
+        elif kind == SINGLE_FACTOR_KIND:
+            renderparams['onefactor'] = analysis
+        elif kind == DISCRETE_OPT_KIND:
+            renderparams['discrete'] = analysis
+            
+        # TODO: Re-add ZeroDivisionError
+    except (RuntimeError, TypeError, NameError):
+        #TODO: ALERT
+        pass
+    
+    if kind == REGRESSION_KIND:
+        # TODO: I think we shouldn't do it on our side
+        #   move to the client?
+        xmin = 0
+        xmax = 0
+        ymin = 0
+        ymax = 0
+        for item in data:
+            if xmin > item.x:
+                xmin = item.x
+            if xmax < item.x:
+                xmax = item.x
+            if ymin > item.y:
+                ymin = item.y
+            if ymax < item.y:
+                ymax = item.y
+        renderparams['xmin'] = xmin
+        renderparams['xmax'] = xmax
+        renderparams['ymin'] = ymin
+        renderparams['ymax'] = ymax
+    elif kind == SINGLE_FACTOR_KIND:
+        # Include candle parameters to draw here
+        intervals = map(lambda bin: [bin] + analysis.stdDev1Intervals[bin], analysis.stdDev1Intervals)
+        renderparams['x_intervals'] = intervals
+    elif kind == DISCRETE_OPT_KIND:
+        test = analysis.table
+        renderparams['tally'] = analysis.table
+    
+    #   a = renderparams['regression']
+    #b = a.slope
+    #c = a.intercept
+    #ass = 1/0
+    return render_to_response('data.xml', renderparams, mimetype="application/xml")
+
+	#xaxis = []
+	#for i in range(10):
+	#	xaxis.append( ((xmax - xmin)/10.0)*(i) + xmin )
+	#	
+	#regression = LinearRegression()
+	#
+	#try:
+	#	regression.analyse(data)
+	#except (ZeroDivisionError):
+	#	regression = False
+
 
 def edit(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)
@@ -262,40 +388,62 @@ def create_new(request):
 	return render_to_response('new_experiment.html', { 'request': request  })
 
 def create_experiment(request):
-	if not request.user.is_authenticated():
-		return login(request)
-	try:
-		exp = Experiment()
-		exp.x_name = request.POST['x']
-		exp.y_name = request.POST['y']
-		exp.description = request.POST['desc']
-		exp.x_units = request.POST['xunits']
-		exp.y_units = request.POST['yunits']
-		exp.x_control = request.POST['xdesc']
-		exp.y_control = request.POST['ydesc']
-		exp.user = request.user
-		exp.vote = 0
-
-	except (KeyError):
-		return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
-	else:
-		exp.save()
-
-                def index_contents(c):
-                    for w in tokenize(c):
-                        ind = Index()
-                        ind.doc = exp
-                        ind.word = w
-                        ind.save()
+    if not request.user.is_authenticated():
+        return login(request)
+    try:
+        exp = Experiment()
+        exp.x_name = request.POST['x']
+        exp.y_name = request.POST['y']
+        exp.description = request.POST['desc']
+        exp.x_units = request.POST['xunits']
+        exp.y_units = request.POST['yunits']
+        exp.x_type = request.POST['xtype']
+        exp.y_type = request.POST['ytype']
+        exp.user = request.user
+        exp.vote = 0
+        
+        exp.save()
+        
+        # TODO: in options, check for unicodoce
+        if exp.x_type == 'c':
+            i = 0
+            while ('choice_x_%d' % i) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_x_%d' % i)]
+                if len(tokenize(option.option)) > 0:
+                    option.order = i
+                    option.experiment = exp
+                    option.var = 'x'
+                    option.save()
+                i = i + 1
+        
+        if exp.y_type == 'c':
+            i = 0
+            while ('choice_y_%d' % i) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_y_%d' % i)]
+                if len(tokenize(option.option)) > 0:
+                    option.order = i
+                    option.experiment = exp
+                    option.var = 'y'
+                    option.save()
+                i = i + 1
+        def index_contents(c):
+            for w in tokenize(c):
+                ind = Index()
+                ind.doc = exp
+                ind.word = w
+                ind.save()
                 index_contents(exp.x_name)
                 index_contents(exp.y_name)
                 index_contents(exp.description)
-
+                
                 at = get_auth_token(request)
-                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!"
-                     % (exp.y_name + " with " + exp.x_name) )
-
-		return redirect("/view/%d/" % (exp.id))
+                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
+    except (KeyError):
+        return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
+    
+    return redirect("/view/%d/" % (exp.id))
 		
 def join(request, exp_id):
 	exp = get_object_or_404(Experiment, pk=exp_id)

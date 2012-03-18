@@ -3,7 +3,19 @@
 {% block title %}Experiment{% endblock %}
 
 {% block extrahead %}
-<script language="JavaScript" src="/static/Charts/FusionCharts.js"></script>
+<!-- TODO: GET RID OF THIS! <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script> -->
+
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+<!--[if IE]>
+<script type="text/javascript" src="static/Charts/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+    google.load('visualization', '1', {packages: ['corechart']});
+</script>
+
 <script language="javascript">
 function vote(val) {
 		
@@ -35,8 +47,8 @@ function vote(val) {
 	xmlhttp.send();
 }
 
- function drawChart(xmldata) {
-
+/*
+ function drawChartOLD(xmldata) {
 	var data = new google.visualization.DataTable();
 	
 	var chartElement = xmldata.getElementsByTagName("chart")[0];
@@ -77,6 +89,241 @@ function vote(val) {
 	document.getElementById("experiment_data_points").innerHTML = dataElements.length;
 	total = xmldata.getElementsByTagName("regression")[0];
 	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
+}*/
+
+function drawColumnChart(xmldata) {
+    var xMapping = {};
+    var yMapping = {};
+    
+    //1. Load label mapping parameters
+    {
+        var mappingNode = xmldata.getElementsByTagName('x_mapping')[0];
+        var mappings = mappingNode.getElementsByTagName('mapping');
+        
+        for (var i = 0; i < mappings.length; ++i) {
+            var num = mappings[i].getAttribute('from');
+            var label = mappings[i].getAttribute('to');
+            xMapping[num] = label;
+        }
+        
+        mappingNode = xmldata.getElementsByTagName('y_mapping')[0];
+        mappings = mappingNode.getElementsByTagName('mapping');
+        
+        for (var i = 0; i < mappings.length; ++i) {
+            var num = mappings[i].getAttribute('from');
+            var label = mappings[i].getAttribute('to');
+            yMapping[num] = label;
+        }
+    }
+    // /1. Mappings parameters loaded
+    // 2. Reconstruct table
+    var table = {};
+    
+    for (var key in xMapping) {
+        table[key] = {};
+        for (var key2 in yMapping) {
+            table[key][key2] = 0;
+        }
+    }
+    
+    var entriesWrap = xmldata.getElementsByTagName('tally')[0];
+    var entries = entriesWrap.getElementsByTagName('cell');
+    for (var i = 0; i < entries.length; ++i) {
+        var xC = entries[i].getAttribute('row');
+        var yC = entries[i].getAttribute('col');
+        var val = parseInt(entries[i].getAttribute('count')); 
+        table[xC][yC] = val;
+    }
+    
+    // 3. Draw the data!
+    var data = new google.visualization.DataTable();
+    
+    data.addColumn('string', 'TODO_axis');
+    for (var yAlias in yMapping) {
+        data.addColumn('number', yMapping[yAlias]);
+    }
+    
+    for (var xAlias in xMapping) {
+        var row = [xMapping[xAlias]];
+        for (yAlias in yMapping) {
+            row.push(table[xAlias][yAlias]);
+        }
+        data.addRows([
+            row
+        ]);
+    }
+    
+    var options = {};
+    var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+}
+
+
+function drawCandleStickChart(xmldata) {
+    var mapping = {};
+    var data = [];
+    
+    var mappingNode = xmldata.getElementsByTagName('x_mapping')[0];
+    var x_mappings = mappingNode.getElementsByTagName('mapping');
+    
+    for (var i = 0; i < x_mappings.length; ++i) {
+        var levelBin = x_mappings[i].getAttribute('from');
+        var levelBinStr = x_mappings[i].getAttribute('to');
+        mapping[levelBin] = levelBinStr;
+    }
+    
+    var extraElement = xmldata.getElementsByTagName("extra")[0];
+	var candles = extraElement.getElementsByTagName("candle");
+    
+    for (var i = 0; i < candles.length; ++i) {
+        var candle = candles[i];
+        var alias =  candle.getAttribute('bin');
+        var label = mapping[ alias ];
+        var bmin = parseFloat(candle.getAttribute('min'));
+        var bmax = parseFloat(candle.getAttribute('max'));
+        var bMSigma = parseFloat(candle.getAttribute('open'));
+        var bPSigma = parseFloat(candle.getAttribute('close'));
+        data.push([label, bmin, bMSigma, bPSigma, bmax]);
+    }
+    
+	var dataTbl = google.visualization.arrayToDataTable(data, true);
+    
+    var options = {legend:'none'};
+    
+    var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
+    chart.draw(dataTbl, options);
+}
+
+function drawChart(xmldata) {
+    
+    //1. Fill in the data array
+    var datasetElement = xmldata.getElementsByTagName("dataset")[0];
+	var dataElements = datasetElement.getElementsByTagName("set");
+    
+    var data = [];
+    
+    for (var i = 0; i < dataElements.length; ++i) {
+        var x = dataElements[i].getAttribute("x");
+        var y = dataElements[i].getAttribute("y");
+        data.push([x,y]);
+    }
+    
+    //2. Data Array Filled.
+    //   Create labels
+    labels = ['TODO_xaxisname', xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')];
+    
+    var orig_colors = [];
+    
+    //3. Draw Scatter Plot of data points
+    graph = new Dygraph(
+        document.getElementById('chart_div'),
+        data,
+        {
+            labels: labels,
+            drawPoints: true,
+            strokeWidth: 0.0,
+            drawCallback: function(g, is_initial) {
+                if (!is_initial) { return; }
+                var c = g.getColors();
+                for (var i = 0; i < c.length; i++) orig_colors.push(c[i]);
+            }
+        }
+    );
+    
+    //4. Compute the points to draw the piecewise parametric curve over data.
+    //   The way this works is that a parametric curve is a vector function
+    //   [x, y] = f(t). We use xml to pass function(t, [i]) {} functions to plot here
+    //
+    //   Also, i is the optional parameter denoting the index of interval to draw.
+    //   0..tranges intervals are processed
+    //   
+    //   We also need to insert points from the original data
+    //   TODO: Make original points insertion code more efficient? Also, we destroy data
+    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
+    var pc_data = [];
+    
+    var pcurve = xmldata.getElementsByTagName('parametric_curve')[0]; //Can always add more later
+    var tranges = parseInt(pcurve.getElementsByTagName('t_count')[0].textContent);
+    // Number of points to generate per parametric range. Use a hardcoded value for now
+    var points = Math.round(1000 / tranges);
+    eval('x_func = ' + pcurve.getElementsByTagName('x_func')[0].textContent);
+    eval('y_func = ' + pcurve.getElementsByTagName('y_func')[0].textContent);
+    
+    for (var ti = 0; ti < tranges; ++ti) { //iterate over all piecewise ranges
+        for (var p = 0; p < (points + 1); ++p) { //iterate by regular steps
+            var t = p / (points + 1); //normalize t in interval [0,1]
+            var point = [ x_func(t,ti), y_func(t,ti) ];
+            var entry = [];
+            entry.push(point[0]); //push the x-coord of the entry
+            if (point[0] < data[0][0]) {
+                entry.push(null); //if there is no data for original series, skip it
+            } else {
+                while (point[0] > data[0][0]) {
+                    datapt = data.shift();
+                    entry = [];
+                    entry.push(datapt[0], datapt[1]);
+                    pc_data.push(entry);
+                }
+                entry = [];
+                entry.push(point[0]);
+            }
+            entry.push( point[1] );
+            pc_data.push( entry );
+        }
+    }
+    
+    //5. Draw Regression on the plot
+    pc_labels = [];
+    pc_colors = [];
+    pc_opts = {};
+    pc_opts['axes']={};
+    
+    for (var i = 0; i < labels.length; ++i) {
+        pc_labels.push(labels[i]);
+        if (i > 0) { 
+            pc_colors.push(orig_colors[i-1]);
+            var label = labels[i] + " Regression";
+            pc_labels.push(label);
+            var c = new RGBColor(orig_colors[i-1]);
+            c.r = Math.floor(255 - 0.5 * (255 - c.r));
+            c.g = Math.floor(255 - 0.5 * (255 - c.g));
+            c.b = Math.floor(255 - 0.5 * (255 - c.b));
+            pc_colors.push(c.toHex());
+            pc_opts[label] = {
+                drawPoints: false,
+                strokeWidth: 1.0
+            };
+        }
+    }
+    
+    pc_opts['axes']['x'] = {
+                valueFormatter: function (p) { return p.toFixed(2); },
+                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+            };
+    pc_opts['axes']['y'] = {
+                valueFormatter: function (p) { return p.toFixed(2); },
+                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+            };
+    
+    pc_opts.file = pc_data;
+    pc_opts.labels = pc_labels;
+    pc_opts.colors = pc_colors;
+    graph.updateOptions(pc_opts);
+}
+
+/* 
+ * This function looks at the data received and draws an appropriate
+ * graphical object.
+ *
+ */
+function displayLoadedData(xmldata) {
+    var regressions = xmldata.getElementsByTagName("regression");
+    var onefactors = xmldata.getElementsByTagName("onefactor");
+    var discretes = xmldata.getElementsByTagName("discrete");
+    
+    if (regressions.length > 0) { drawChart(xmldata);            }
+    if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
+    if (  discretes.length > 0) { drawColumnChart(xmldata);      }
 }
 
 function loadChartData(url) {
@@ -100,7 +347,7 @@ function loadChartData(url) {
 	  	if (xmlhttp.readyState==4 && xmlhttp.status==200)
 		{
 			var xmldata = xmlhttp.responseXML;
-			drawChart(xmldata);
+			displayLoadedData(xmldata);
 		}
 	}
 
@@ -185,8 +432,17 @@ function drawUserTable(xmldata) {
 		data.setCell(i, 2, dataElement.getAttribute("comment"));
 	}
 	
-	data.setCell(dataElements.length, 0, "<input id=\"x_entry\" type=\"text\" />")
-	data.setCell(dataElements.length, 1, "<input id=\"y_entry\" type=\"text\" />")
+    var xinputCpy = dojo.clone( dojo.byId('x_entry_prototype') );
+    var yinputCpy = dojo.clone( dojo.byId('y_entry_prototype') );
+    xinputCpy.id = 'x_entry';
+    yinputCpy.id = 'y_entry';    
+    var xinputWrap = document.createElement("div");
+    var yinputWrap = document.createElement("div");
+    dojo.place(xinputCpy, xinputWrap);
+    dojo.place(yinputCpy, yinputWrap);    
+    
+	data.setCell(dataElements.length, 0, xinputWrap.innerHTML)
+	data.setCell(dataElements.length, 1, yinputWrap.innerHTML)
 	data.setCell(dataElements.length, 2, "<input id=\"comment_entry\" type=\"text\" />")
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
@@ -206,12 +462,12 @@ function enableButton(button) {
 
 
 function addDataEntry() {
-	
+    
 	var x = document.getElementById("x_entry").value;
 	var y = document.getElementById("y_entry").value;
 	var comment = document.getElementById("comment_entry").value;
-	
-	disableButton(document.getElementById("add_entry_button"));
+    
+    disableButton(document.getElementById("add_entry_button"));
 	
 	var url = "/submit/{{ exp.pk }}/";
 	var params = "x=" + encodeURI (x) + "&y=" + encodeURI (y) + "&comments=" + encodeURI (comment);
@@ -263,7 +519,36 @@ function addDataEntry() {
 
 {% block content %}
 		
+    <div style="display:none;" id="hidden_inputs"> 
+        <!-- a wrapper for x_choices input controls -->
+        <div>
+        {% if x_choices != None %}
+                <select id="x_entry_prototype" name="x_entry">
+                    {%  for choice in x_choices %}
+                        <option value="{{choice.order}}">{{ choice.option }}</option>
+                    {% endfor %}
+                </select>
+        {% else %}
+            <input id="x_entry_prototype" type="text" />
+        {% endif %}
+        </div>
+        
+        <!-- a wrapper for y_choices input controls -->
+        <div>
+        {% if y_choices != None %}
+                <select id="y_entry_prototype" name="y_entry">
+                    {%  for choice in y_choices %}
+                        <option value="{{choice.order}}">{{ choice.option }}</option>
+                    {% endfor %}
+                </select>
+        {% else %}
+            <input id="y_entry_prototype" type="text" />
+        {% endif %}
+        </div>
 
+        
+    </div>
+    
     <div style="width: 700px; margin-top: 30px;" class="experiment centered_box rounded_shaded_big_box">
     	<div style="position: relative">
             <div class="experiment_vote_box" style="position: absolute; margin-left: 10px; width: 60px; height: 70px; top: 20px; left: -100px;">
@@ -326,12 +611,18 @@ function addDataEntry() {
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
-                    <td style="width: 100%">{{ exp.x_units }}</td>
+					<td style="width: 100%">
+					One of {% if exp.x_type = 'i' %}{{ exp.value_desc }}{% endif %}
+					{% if exp.x_type == 'c' %}{% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+					</td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
-                    <td style="width: 100%">{{ exp.y_units }}</td>
+					<td style="width: 100%">
+                    One of {% if exp.y_type = 'i' %}{{ exp.value_desc }}{% endif %}
+					{% if exp.y_type == 'c' %}{% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+					<td style="width: 100%">
                 </tr>
                 <tr>
                     <td colspan="3" style="font-size: 15px;">
