@@ -1,18 +1,5 @@
-from main.models import Data
 from stats import linregress
-
-class Regression(object):
-	def regress(self, x, y):
-		pass
-	def summary(self):
-		return "No analysis"
-	def analyse(self, data):
-		x = []
-		y = []
-		for datum in data:
-			x.append(datum.x)
-			y.append(datum.y)
-		self.regress(x, y)
+from main.statistics.common import Regression
 
 class LinearRegression(Regression):
 	slope = 0.0

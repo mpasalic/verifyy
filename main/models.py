@@ -4,7 +4,8 @@ from datetime import datetime
 from django.db.models.fields.related import ForeignKey
 
 DATA_TYPES = (
-	('i', 'Number'),
+    ('t', 'Date and Time'),
+	('r', 'Real Number'),
 	('c', 'Choice')
 )
 
@@ -78,16 +79,18 @@ class ChoiceOptions(models.Model):
 	order = models.IntegerField()
 	var = models.CharField(max_length=1)
 	experiment = models.ForeignKey(Experiment)
-		
-class Data(models.Model):
-	x = models.IntegerField()
-	x_choice = models.ForeignKey(ChoiceOptions, null=True, blank=True, default=None)
-	y = models.IntegerField()
-	y_choice = models.ForeignKey(ChoiceOptions, null=True, blank=True, default=None)
-	comments = models.TextField()
-	experiment = models.ForeignKey(Experiment)
-	created = models.DateTimeField(auto_now=True, default=datetime.now())
-	user = models.ForeignKey(User)
 
-	def __unicode__(self):
-		return self.x + ", " + self.y
+class Data(models.Model):
+    x = models.FloatField()
+    y = models.FloatField()
+    # We don't really need that, choices are experiment-defined parameters
+    #x_choice = models.ForeignKey(ChoiceOptions, null=True, blank=True, default=None)
+    #y_choice = models.ForeignKey(ChoiceOptions, null=True, blank=True, default=None)
+    comments = models.TextField()
+    experiment = models.ForeignKey(Experiment)
+    created = models.DateTimeField(auto_now=True, default=datetime.now())
+    user = models.ForeignKey(User)
+    
+    def __unicode__(self):
+        return self.x + ", " + self.y
+
