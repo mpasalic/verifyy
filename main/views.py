@@ -1,6 +1,8 @@
 # Create your views here.
 
 from main.models import *
+from main.conversion import parseTypeOrError
+
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
 from main.statistics.one_factor import OneFactorAnalysis
@@ -171,20 +173,39 @@ def submit_error(var_name):
 	return "'%s' must be a whole number." % var_name;
 	
 def submit(request, exp_id):
-	if(request.method == 'POST'):
-		exp = get_object_or_404(Experiment, pk=exp_id)
-		try:
-			x_val = int(request.POST['x'])
-		except ValueError:
-			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
-		try:
-			y_val = int(request.POST['y'])
-		except ValueError:
-			return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.y_name)})
-			
-		data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
-		data.save()
-	return redirect("/view/%d/" % (exp.id));
+    if(request.method == 'POST'):
+        exp = get_object_or_404(Experiment, pk=exp_id)
+        
+        xraw = request.POST['x'];
+        yraw = request.POST['y'];
+        x_enum = None
+        y_enum = None
+        
+        # See what kind of experiment are we doing:
+        
+        if exp.x_type == 'c':
+            x_enum_objs = ChoiceOptions.objects.filter(experiment=exp, var='x')
+            x_enum = set()
+            for obj in x_enum_objs:
+                x_enum.add(obj.order)
+        
+        if exp.y_type == 'c':
+            y_enum_objs = ChoiceOptions.objects.filter(experiment=exp, var='y')
+            y_enum = set()
+            for obj in y_enum_objs:
+                x_enum.add(obj.order)
+        
+        try:
+            x_val = parseTypeOrError(xraw, exp.x_type, x_enum)
+            y_val = parseTypeOrError(yraw, exp.y_type, y_enum)
+            
+            data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
+            data.save()
+        
+        except ValueError:
+            return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
+        
+    return redirect("/view/%d/" % (exp.id));
 	
 def new_experiment(request):
     return render_to_response('new_experiment.html', {'request': request})
@@ -228,6 +249,7 @@ def data(request, exp_id):
     #   cr - choice to real - perform one-factor experiment analysis, draw candlestick charts
     #   cc - choice to choice - perform Bayesian analysis, draw column charts
     #   rc - FORBIDDEN, always should have X (factor) as a discrete variable in this case
+    #   *t - FORBIDDEN, it does not make sense to analyze TIME as the dependent variable
     
     data = get_data(request, exp_id)
     analysis = Analysis()
@@ -241,6 +263,10 @@ def data(request, exp_id):
         'discrete': False
     }
     kind = -1
+    
+    if exp.y_type == 't':
+        raise KeyError("This kind of experiment should not exist!")
+    
     if exp.x_type != 'c':
         if exp.y_type != 'c':
             kind = REGRESSION_KIND
@@ -276,14 +302,14 @@ def data(request, exp_id):
         analysis.analyse(data)
         
         if kind == REGRESSION_KIND:
-            renderparams['regresion'] = analysis
+            renderparams['regression'] = analysis
         elif kind == SINGLE_FACTOR_KIND:
             renderparams['onefactor'] = analysis
         elif kind == DISCRETE_OPT_KIND:
             renderparams['discrete'] = analysis
-        
+            
         # TODO: Re-add ZeroDivisionError
-    except (TypeError): #(RuntimeError, TypeError, NameError):
+    except (RuntimeError, TypeError, NameError):
         #TODO: ALERT
         pass
     
@@ -315,6 +341,10 @@ def data(request, exp_id):
         test = analysis.table
         renderparams['tally'] = analysis.table
     
+    #   a = renderparams['regression']
+    #b = a.slope
+    #c = a.intercept
+    #ass = 1/0
     return render_to_response('data.xml', renderparams, mimetype="application/xml")
 
 	#xaxis = []

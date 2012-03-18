@@ -177,7 +177,7 @@ function drawCandleStickChart(xmldata) {
     
     for (var i = 0; i < candles.length; ++i) {
         var candle = candles[i];
-        var label = levelBinStr[ candle.getAttribute('bin') ];
+        var label = levelBinStr[ "" + parseInt(candle.getAttribute('bin')) ];
         var bmin = parseFloat(candle.getAttribute('min'));
         var bmax = parseFloat(candle.getAttribute('max'));
         var bMSigma = parseFloat(candle.getAttribute('open'));
