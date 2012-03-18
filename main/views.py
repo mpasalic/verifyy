@@ -4,6 +4,7 @@ from main.models import *
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
 from main.statistics.one_factor import OneFactorAnalysis
+from main.statistics.bayessian import SimpleBayessianAnalysis
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -250,8 +251,10 @@ def data(request, exp_id):
         # Fetch the possible values of X:
         xopts = ChoiceOptions.objects.filter(experiment=exp,var='x')
         xoptsDataForm = map(lambda opt: opt.order, xopts)
-        xoptsMapping = map(lambda opt: [opt.order, opt.option], xopts)
-        renderparams['x_mapping'] = xoptsMapping
+        xoptsDataMap = {}
+        for xopt in xopts:
+            xoptsDataMap[xopt.order] = xopt.option
+        renderparams['x_mapping'] = xoptsDataMap
         
         if exp.y_type != 'c':
             kind = SINGLE_FACTOR_KIND
@@ -260,10 +263,12 @@ def data(request, exp_id):
             # Fetch the possible values of Y:
             yopts = ChoiceOptions.objects.filter(experiment=exp,var='y')
             yoptsDataForm = map(lambda opt: opt.order, yopts)
-            yoptsMapping = map(lambda opt: [opt.order, opt.option], yopts)
-            renderparams['y_mapping'] = yoptsMapping
+            yoptsDataMap = {}
+            for yopt in yopts:
+                yoptsDataMap[yopt.order] = yopt.option
+            renderparams['y_mapping'] = yoptsDataMap
             
-            #TODO: Implement this
+            analysis = SimpleBayessianAnalysis(xoptsDataForm, yoptsDataForm)
             kind = DISCRETE_OPT_KIND
     #endif 
     
@@ -306,6 +311,10 @@ def data(request, exp_id):
         # Include candle parameters to draw here
         intervals = map(lambda bin: [bin] + analysis.stdDev1Intervals[bin], analysis.stdDev1Intervals)
         renderparams['x_intervals'] = intervals
+    elif kind == DISCRETE_OPT_KIND:
+        test = analysis.table
+        renderparams['tally'] = analysis.table
+    
     return render_to_response('data.xml', renderparams, mimetype="application/xml")
 
 	#xaxis = []

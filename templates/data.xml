@@ -48,7 +48,7 @@
 {% if onefactor %}
     <onefactor>
         <x_mapping>
-            {% for x, xOpt in x_mapping %}
+            {% for x, xOpt in x_mapping.items %}
                 <mapping from="{{ x }}" to="{{ xOpt }}" />
             {% endfor %}
         </x_mapping>
@@ -61,7 +61,32 @@
     </onefactor>
 {% endif %}
 
+{% if discrete %}
+    <discrete>
+        <x_mapping>
+            {% for x, xOpt in x_mapping.items %}
+                <mapping from="{{ x }}" to="{{ xOpt }}" />
+            {% endfor %}
+        </x_mapping>
 
+        <y_mapping>
+            {% for y, yOpt in y_mapping.items %}
+                <mapping from="{{ y }}" to="{{ yOpt }}" />
+            {% endfor %}
+        </y_mapping>
+        
+        <tally>
+            {% for row, colVec in tally.items %}
+                {% for col, val in colVec.items %}
+                    {% if col != None %}
+                        <cell row="{{ row }}" col="{{ col }}" count="{{ val }}" />
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </tally>
+
+    </discrete>
+{% endif %}
 
 </extra>
 </chart>

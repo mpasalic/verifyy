@@ -91,6 +91,73 @@ function vote(val) {
 	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
 }*/
 
+function drawColumnChart(xmldata) {
+    var xMapping = {};
+    var yMapping = {};
+    
+    //1. Load label mapping parameters
+    {
+        var mappingNode = xmldata.getElementsByTagName('x_mapping')[0];
+        var mappings = mappingNode.getElementsByTagName('mapping');
+        
+        for (var i = 0; i < mappings.length; ++i) {
+            var num = mappings[i].getAttribute('from');
+            var label = mappings[i].getAttribute('to');
+            xMapping[num] = label;
+        }
+        
+        mappingNode = xmldata.getElementsByTagName('y_mapping')[0];
+        mappings = mappingNode.getElementsByTagName('mapping');
+        
+        for (var i = 0; i < mappings.length; ++i) {
+            var num = mappings[i].getAttribute('from');
+            var label = mappings[i].getAttribute('to');
+            yMapping[num] = label;
+        }
+    }
+    // /1. Mappings parameters loaded
+    // 2. Reconstruct table
+    var table = {};
+    
+    for (var key in xMapping) {
+        table[key] = {};
+        for (var key2 in yMapping) {
+            table[key][key2] = 0;
+        }
+    }
+    
+    var entriesWrap = xmldata.getElementsByTagName('tally')[0];
+    var entries = entriesWrap.getElementsByTagName('cell');
+    for (var i = 0; i < entries.length; ++i) {
+        var xC = entries[i].getAttribute('row');
+        var yC = entries[i].getAttribute('col');
+        var val = parseInt(entries[i].getAttribute('count')); 
+        table[xC][yC] = val;
+    }
+    
+    // 3. Draw the data!
+    var data = new google.visualization.DataTable();
+    
+    data.addColumn('string', 'TODO_axis');
+    for (var yAlias in yMapping) {
+        data.addColumn('number', yMapping[yAlias]);
+    }
+    
+    for (var xAlias in xMapping) {
+        var row = [xMapping[xAlias]];
+        for (yAlias in yMapping) {
+            row.push(table[xAlias][yAlias]);
+        }
+        data.addRows([
+            row
+        ]);
+    }
+    
+    var options = {};
+    var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+}
+
 
 function drawCandleStickChart(xmldata) {
     var mapping = {};
@@ -253,9 +320,9 @@ function displayLoadedData(xmldata) {
     var onefactors = xmldata.getElementsByTagName("onefactor");
     var discretes = xmldata.getElementsByTagName("discrete");
     
-    if (regressions.length > 0) drawChart(xmldata);
-    if (onefactors.length > 0) drawCandleStickChart(xmldata);
-    if (discretes.length > 0) alert("[NOTIMPL] DRAW BOX PLOT");
+    if (regressions.length > 0) { drawChart(xmldata);            }
+    if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
+    if (  discretes.length > 0) { drawColumnChart(xmldata);      }
 }
 
 function loadChartData(url) {
