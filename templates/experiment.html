@@ -323,12 +323,16 @@ function addDataEntry() {
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
-                    <td style="width: 100%">{{ exp.x_units }}</td>
+					<td style="width: 100%">
+					{% include 'experiment_print_type.html' with var='x' %}
+					</td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
-                    <td style="width: 100%">{{ exp.y_units }}</td>
+					<td style="width: 100%">
+                    {% include 'experiment_print_type.html' with var='y' %}
+					<td style="width: 100%">
                 </tr>
                 <tr>
                     <td colspan="3" style="font-size: 15px;">

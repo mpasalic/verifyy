@@ -29,7 +29,6 @@ class Experiment(models.Model):
 		return total
 		
 	votetotal = models.IntegerField(default=0)
-	
 
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
