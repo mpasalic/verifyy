@@ -35,13 +35,13 @@
 	<ymax>{{ ymax }}</ymax>
     
 	<regression>
-		{{ regression.summary }}
+        <summary>{{ regression.summary }}</summary>
 	</regression>
     
     <parametric_curve>
-        <t_count>1</t_count>
-        <x_func>function(t) { return ({{ xmax }} - {{ xmin }})*t + {{ xmin }}; }</x_func>
-        <y_func>function(t) { return {{ regression.intercept }} + {{ regression.slope }} * (({{ xmax }} - {{ xmin }})*t + {{ xmin }}); }</y_func>
+        <t_count>{{ regression.t_count }}</t_count>
+        <x_func>{{ regression.x_func }}</x_func>
+        <y_func>{{ regression.y_func }}</y_func>
     </parametric_curve>
 {% endif %}
 

@@ -235,6 +235,10 @@ function drawChart(xmldata) {
         {
             labels: labels,
             drawPoints: true,
+            stepPlot:true,
+            avoidMinZero:true,
+            pointSize: 4,
+            highlightCircleSize: 5,
             strokeWidth: 0.0,
             drawCallback: function(g, is_initial) {
                 if (!is_initial) { return; }
@@ -301,6 +305,10 @@ function drawChart(xmldata) {
     pc_opts['xlabel']=xAxisText;
     pc_opts['ylabel']=yAxisText;
     pc_opts['title'] =chartCaption;
+    pc_opts['stepPlot'] = true;
+    pc_opts['avoidMinZero'] = true;
+    pc_opts['highlightCircleSize'] = 4;
+    pc_opts['highlightSeriesOpts'] = { pointSize: 5 };
     
     for (var i = 0; i < labels.length; ++i) {
         pc_labels.push(labels[i]);
@@ -350,12 +358,15 @@ function displayLoadedData(xmldata) {
     if (regressions.length > 0) { drawChart(xmldata);            }
     if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
     if (  discretes.length > 0) { drawColumnChart(xmldata);      }
+    
+    var experiment_analysis_summary = xmldata.getElementsByTagName('summary')[0].childNodes[0].nodeValue;
+    document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
 }
 
 function loadChartData(url) {
 	
 	document.getElementById("chart_div").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
-	document.getElementById("experiment_regression_summary").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
+	document.getElementById("experiment_analysis_summary").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
 	document.getElementById("experiment_data_points").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>"; 
 	
 	var xmlhttp;
@@ -685,7 +696,7 @@ function addDataEntry() {
              <table class="rounded_table" style="table-layout: fixed; width: 100%;">
                 <tr>
                     <td style="width: 100px;">Correlation</td>
-                    <td style="width: 100%"><span id="experiment_regression_summary"></span></td>
+                    <td style="width: 100%"><span id="experiment_analysis_summary"></span></td>
                 </tr>
                 <tr>
                     <td style="width: 100px;">Data points</td>

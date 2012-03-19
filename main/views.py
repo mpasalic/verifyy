@@ -5,6 +5,7 @@ from main.conversion import parseTypeOrError
 
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
+from main.statistics.poly_2nd import Poly2OrderRegression
 from main.statistics.one_factor import OneFactorAnalysis
 from main.statistics.bayessian import SimpleBayessianAnalysis
 
@@ -271,6 +272,7 @@ def data(request, exp_id):
         if exp.y_type != 'c':
             kind = REGRESSION_KIND
             analysis = LinearRegression()
+            #analysis = Poly2OrderRegression()
         else:
             raise KeyError("This kind of experiment should not exist!")
     else:
