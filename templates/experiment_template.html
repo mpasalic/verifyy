@@ -2,6 +2,22 @@
 
 <script>
 typechange = function (variable) {
+    // Verify that we're not creating an unsupported experiment model
+    if (variable == 'x') {
+        var xType = document.getElementById(variable + 'type').value;
+        if (xType == 't' || xType == 'r') {
+            var yTypePossibl = document.getElementById('y' + '_opt_c');
+            yTypePossibl.disabled="disabled";
+            yTypePossibl = document.getElementById('y' + '_opt_r');
+            yTypePossibl.selected="selected";
+            typechange('y');
+        } else if (xType == 'c') {
+            var yTypePossibl = document.getElementById('y' + '_opt_c');
+            yTypePossibl.disabled="";
+        }
+    }
+    // End verification of valid type combination
+    
 	var shouldDisplayArea = document.getElementById(variable + 'type').value == 'c';
 	var areaDiv = document.getElementById('choice_area_' + variable);
 	if (shouldDisplayArea && !areaDiv.inited) {
@@ -74,7 +90,9 @@ choiceClick = function (variable, index, plus) {
             <table class="rounded_table" style="table-layout: fixed; width: 100%;">
                 <tr>
                     <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px; padding-top: 9px;">how</td>
-                    <td valign="top" style="width: 170px;"><input style="width: 150px;" name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)"></td>
+                    <td valign="top" style="width: 170px;">
+                        <input style="width: 150px;" name="x" type="text" value="{{ exp.x_name }}" onkeyup="xchange(this.value)">
+                    </td>
                     <td style="width: 100%;">
                     	{% include 'datatype_choices.html' with var='x'%}
                         <span id="units_area_x">in units <input name="xunits" type="text" value="{{ exp.x_units }}"></span>
@@ -83,7 +101,9 @@ choiceClick = function (variable, index, plus) {
                 </tr>
                 <tr>
                     <td valign="top" style="width: 50px; font-size: 12px; padding: 0px; padding-left: 3px; padding-top: 9px;">affects</td>
-                    <td valign="top" style="width: 170px;"><input style="width: 150px;" name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)"></td>
+                    <td valign="top" style="width: 170px;">
+                        <input style="width: 150px;" name="y" type="text" value="{{ exp.y_name }}" onkeyup="ychange(this.value)">
+                    </td>
                     <td style="width: 100%">
                     	{% include 'datatype_choices.html' with var='y'%}
                     	<span id="units_area_y">in units <input name="yunits" type="text" value="{{ exp.y_units }}"></span>

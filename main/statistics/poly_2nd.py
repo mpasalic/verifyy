@@ -1,12 +1,15 @@
+# # # # # # # # # # # # # # # # # # # #
+# @author Alexander Novikov
+#
+# Implementation of 2nd order polynomial regression over data
+# Uses r_2 rsquared values, F_value and F_goal for F-test
+#
+#
 
 from main.statistics.common import Regression
 from main.statistics.gauss import ge_solve
 from main.statistics.f_table import f_table_value
 
-#
-#   TODO: output R^2, ANOVA coefficients?
-#
-#
 
 class Poly2OrderRegression(Regression):
     # kN corresponds to kN * x^N term
@@ -93,6 +96,8 @@ class Poly2OrderRegression(Regression):
         ]
         
         Y = [y_0, y_1, y_2]
+        
+        # Solve for the model coefficients using Gaussian Elemination
         X = ge_solve(M, Y)
         
         # Output regression coefficients

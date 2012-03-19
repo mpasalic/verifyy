@@ -36,6 +36,9 @@
     
 	<regression>
         <summary>{{ regression.summary }}</summary>
+        {% if timefold %}
+            <timefold period="{{ timefold }}" />
+        {% endif %}
 	</regression>
     
     <parametric_curve>

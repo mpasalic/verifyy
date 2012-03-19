@@ -1,7 +1,7 @@
 # Create your views here.
 
 from main.models import *
-from main.conversion import parseTypeOrError
+from main.conversion import parseTypeOrError, convertTimeByFolding, TIME_FOLDING
 
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
@@ -253,6 +253,10 @@ def data(request, exp_id):
     #   *t - FORBIDDEN, it does not make sense to analyze TIME as the dependent variable
     
     data = get_data(request, exp_id)
+    
+    #TODO: add a conditional switch on which folding to use
+    time_fold = TIME_FOLDING.WEEKLY
+    
     analysis = Analysis()
     renderparams = {
         'exp': exp, 
@@ -270,9 +274,13 @@ def data(request, exp_id):
     
     if exp.x_type != 'c':
         if exp.y_type != 'c':
+            if exp.x_type == 't':
+                convertTimeByFolding(data, time_fold)
+                renderparams['timefold'] = TIME_FOLDING.strValueOf(time_fold)
             kind = REGRESSION_KIND
             analysis = LinearRegression()
             #analysis = Poly2OrderRegression()
+            
         else:
             raise KeyError("This kind of experiment should not exist!")
     else:
