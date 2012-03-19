@@ -609,16 +609,22 @@ function addDataEntry() {
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
 					<td style="width: 100%">
-					One of {% if exp.x_type = 'i' %}{{ exp.value_desc }}{% endif %}
-					{% if exp.x_type == 'c' %}{% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+                    {% if exp.x_type == 'c' %}
+                        One of {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                    {% else %}
+                        In units of {{ exp.x_units }}
+                    {% endif %}
 					</td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
 					<td style="width: 100%">
-                    One of {% if exp.y_type = 'i' %}{{ exp.value_desc }}{% endif %}
-					{% if exp.y_type == 'c' %}{% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+                    {% if exp.y_type == 'c' %}
+                        One of {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                    {% else %}
+                        In units of {{ exp.y_units }}
+                    {% endif %}
 					<td style="width: 100%">
                 </tr>
                 <tr>
