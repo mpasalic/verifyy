@@ -203,14 +203,28 @@ function drawChart(xmldata) {
     var data = [];
     
     for (var i = 0; i < dataElements.length; ++i) {
-        var x = dataElements[i].getAttribute("x");
-        var y = dataElements[i].getAttribute("y");
+        var x = parseFloat(dataElements[i].getAttribute("x"));
+        var y = parseFloat(dataElements[i].getAttribute("y"));
         data.push([x,y]);
     }
     
+    //1.1 Sort All Data To be On the safe side
+    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
+    
     //2. Data Array Filled.
     //   Create labels
-    labels = ['TODO_xaxisname', xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')];
+    var labels = [
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName'), 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')
+    ];
+    var xAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName') + ", " +
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xUnits');
+    
+    var yAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + ", " + 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits');
+    var chartCaption = xmldata.getElementsByTagName('chart')[0].getAttribute('caption');
     
     var orig_colors = [];
     
@@ -239,13 +253,15 @@ function drawChart(xmldata) {
     //   
     //   We also need to insert points from the original data
     //   TODO: Make original points insertion code more efficient? Also, we destroy data
-    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
     var pc_data = [];
     
     var pcurve = xmldata.getElementsByTagName('parametric_curve')[0]; //Can always add more later
     var tranges = parseInt(pcurve.getElementsByTagName('t_count')[0].textContent);
     // Number of points to generate per parametric range. Use a hardcoded value for now
     var points = Math.round(1000 / tranges);
+    // We need this to interpolate regression value when data point falls between
+    //  regression curve points
+    var pt_y_prev = null;
     eval('x_func = ' + pcurve.getElementsByTagName('x_func')[0].textContent);
     eval('y_func = ' + pcurve.getElementsByTagName('y_func')[0].textContent);
     
@@ -258,15 +274,20 @@ function drawChart(xmldata) {
             if (point[0] < data[0][0]) {
                 entry.push(null); //if there is no data for original series, skip it
             } else {
-                while (point[0] > data[0][0]) {
-                    datapt = data.shift();
+                while ((data.length > 0) && (point[0] >= data[0][0])) {
+                    var datapt = data.shift();
                     entry = [];
-                    entry.push(datapt[0], datapt[1]);
+                    // NOTE: Here we also have to interpolate y for missing x-value
+                    var y_intp = pt_y_prev == null? null : 0.5*(point[1] + pt_y_prev);
+                    entry.push(datapt[0], datapt[1], y_intp);
                     pc_data.push(entry);
                 }
+                
                 entry = [];
                 entry.push(point[0]);
+                entry.push(null);
             }
+            pt_y_prev = point[1];
             entry.push( point[1] );
             pc_data.push( entry );
         }
@@ -277,6 +298,9 @@ function drawChart(xmldata) {
     pc_colors = [];
     pc_opts = {};
     pc_opts['axes']={};
+    pc_opts['xlabel']=xAxisText;
+    pc_opts['ylabel']=yAxisText;
+    pc_opts['title'] =chartCaption;
     
     for (var i = 0; i < labels.length; ++i) {
         pc_labels.push(labels[i]);
@@ -285,9 +309,11 @@ function drawChart(xmldata) {
             var label = labels[i] + " Regression";
             pc_labels.push(label);
             var c = new RGBColor(orig_colors[i-1]);
-            c.r = Math.floor(255 - 0.5 * (255 - c.r));
-            c.g = Math.floor(255 - 0.5 * (255 - c.g));
-            c.b = Math.floor(255 - 0.5 * (255 - c.b));
+            var cp = new RGBColor(orig_colors[i-1]); 
+            // Transpose the color palette
+            c.r = 0.5*(cp.b + cp.g);
+            c.g = 0.5*(cp.r + cp.b);
+            c.b = 0.5*(cp.r + cp.g);
             pc_colors.push(c.toHex());
             pc_opts[label] = {
                 drawPoints: false,

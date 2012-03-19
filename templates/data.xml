@@ -1,4 +1,4 @@
-<chart palette='3' caption='{{ exp.y_name }} with {{ exp.x_name }}' yAxisName='{{ exp.y_units }}' xAxisName='{{ exp.x_units }}' showLegend='0' showLabels='1' xAxisMaxValue='{{ xmax }}' xAxisMinValue='{{ xmin }}' >
+<chart palette='3' caption='{{ exp.y_name }} with {{ exp.x_name }}' xAxisName='{{ exp.x_name }}' yAxisName='{{ exp.y_name }}' yUnits='{{ exp.y_units }}' xUnits='{{ exp.x_units }}' showLegend='0' showLabels='1' xAxisMaxValue='{{ xmax }}' xAxisMinValue='{{ xmin }}' >
 
 
 {% if False %}
