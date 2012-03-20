@@ -512,19 +512,39 @@ function drawChart(xmldata) {
  *
  */
 function displayLoadedData(xmldata) {
-    var regressions = xmldata.getElementsByTagName("regression");
-    var onefactors = xmldata.getElementsByTagName("onefactor");
-    var discretes = xmldata.getElementsByTagName("discrete");
+    
+    var regressionEls = xmldata.getElementsByTagName("regression");
+    var onefactorsEls = xmldata.getElementsByTagName("onefactor");
+    var discretesEls = xmldata.getElementsByTagName("discrete");
+    
+    var regressions = []; var onefactors = []; var discretes = [];
+    
+    var query = xmldata.getElementsByTagName("regression");
+    for (var i = 0; i < regressionEls.length; ++i) {
+        regressions.push(regressionEls[i]);
+    }
+    query = xmldata.getElementsByTagName("onefactor");
+    for (var i = 0; i < query.length; ++i) {
+        onefactors.push(query[i]);
+    }
+    query = xmldata.getElementsByTagName("discrete");
+    for (var i = 0; i < query.length; ++i) {
+        discretes.push(query[i]);
+    }
+
     
     // We have to do this first, because dygraphs might throw an error if 
     // there is no data
     try {
-        var experiment_analysis_summary = xmldata.getElementsByTagName('summary').childNodes;
-        if (experiment_analysis_summary && experiment_analysis_summary.length > 0) {
-            experiment_analysis_summary = experiment_analysis_summary[0].nodeValue;
-            document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
-        } else {
-            document.getElementById("experiment_analysis_summary").innerHTML="No information available.";
+        var experiment_analysis_summary = xmldata.getElementsByTagName('summary')
+        if (experiment_analysis_summary.length > 0) {
+            experiment_analysis_summary = experiment_analysis_summary[0];
+            if (experiment_analysis_summary.childNodes.length > 0) {
+                experiment_analysis_summary = experiment_analysis_summary.childNodes[0].nodeValue;
+                document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
+            } else {
+                document.getElementById("experiment_analysis_summary").innerHTML="No information available.";
+            }
         }
     } catch (e) {}
     
