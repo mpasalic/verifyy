@@ -536,7 +536,15 @@ function displayLoadedData(xmldata) {
     // We have to do this first, because dygraphs might throw an error if 
     // there is no data
     try {
-        var experiment_analysis_summary = xmldata.getElementsByTagName('summary')
+        var dataset_obj = xmldata.getElementsByTagName('dataset');
+        if (dataset_obj.length > 0) {
+            dataset_obj = dataset_obj[0];
+            document.getElementById("experiment_data_points").innerHTML = dataset_obj.getAttribute("size");
+        } else {
+            document.getElementById("experiment_data_points").innerHTML= "0.";
+        }
+        
+        var experiment_analysis_summary = xmldata.getElementsByTagName('summary');
         if (experiment_analysis_summary.length > 0) {
             experiment_analysis_summary = experiment_analysis_summary[0];
             if (experiment_analysis_summary.childNodes.length > 0) {

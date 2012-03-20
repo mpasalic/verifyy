@@ -34,8 +34,8 @@ class Poly2OrderRegression(Regression):
     
     def formatSummaryText(self, keyword, oper):
         self.summaryText = "The data %s be related by a second-order polynomial\
-         (R<sup>2</sup>=%.2f). y =  %.2fx<sup>2</sup> + %.2fx + %.2f. F-test: %.2f %s %.2f.\
-         " % (keyword, self.r_2, self.k2, self.k1, self.k0, self.f_value, oper, self.f_goal)
+         (R<sup>2</sup>=%.2f). y =  %.2fx<sup>2</sup> %sx %s. F-test: %.2f %s %.2f.\
+         " % (keyword, self.r_2, self.k2, self.fmtTerm(self.k1), self.fmtTerm(self.k0), self.f_value, oper, self.f_goal)
     
     def strongSignificance(self):
         self.formatSummaryText("is likely to", ">")

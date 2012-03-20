@@ -308,20 +308,20 @@ def data(request, exp_id):
             kind = DISCRETE_OPT_KIND
     #endif 
     
-    try:
-        analysis.analyse(data)
-        
-        if kind == REGRESSION_KIND:
-            renderparams['regression'] = analysis
-        elif kind == SINGLE_FACTOR_KIND:
-            renderparams['onefactor'] = analysis
-        elif kind == DISCRETE_OPT_KIND:
-            renderparams['discrete'] = analysis
+    #try:
+    analysis.analyse(data)
+    
+    if kind == REGRESSION_KIND:
+        renderparams['regression'] = analysis
+    elif kind == SINGLE_FACTOR_KIND:
+        renderparams['onefactor'] = analysis
+    elif kind == DISCRETE_OPT_KIND:
+        renderparams['discrete'] = analysis
             
         # TODO: Re-add ZeroDivisionError
-    except (RuntimeError, TypeError, NameError):
+    #except (RuntimeError, TypeError, NameError):
         #TODO: ALERT
-        pass
+    #    pass
     
     if kind == REGRESSION_KIND:
         # TODO: I think we shouldn't do it on our side
@@ -347,6 +347,9 @@ def data(request, exp_id):
         # Include candle parameters to draw here
         intervals = map(lambda bin: [bin] + analysis.stdDev1Intervals[bin], analysis.stdDev1Intervals)
         renderparams['x_intervals'] = intervals
+        renderparams['ymin'] = analysis.ymin
+        renderparams['ymax'] = analysis.ymax
+        renderparams['x_mean_effect'] = analysis.x_mean_effect
     elif kind == DISCRETE_OPT_KIND:
         test = analysis.table
         renderparams['tally'] = analysis.table

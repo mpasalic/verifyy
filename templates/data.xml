@@ -9,7 +9,7 @@
 </categories>
 {% endif %}
 
-<dataset seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
+<dataset size="{{ data|length }}" seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 {% for datapoint in data %}
 	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" comment="{{ datapoint.comments }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
 {% endfor %}
@@ -50,11 +50,20 @@
 {% endif %}
 
 {% if onefactor %}
-    <xmin>{{ xmin }}</xmin>
-    <xmax>{{ xmax }}</xmax>
+    <ymin>{{ xmin }}</ymin>
+    <ymax>{{ xmax }}</ymax>
 	
     <onefactor>
-        <summary>{{ onefactor.summmary }}</summary>
+        <summary> 
+            {{ onefactor.summary }}
+            {% for x1, xOpt in x_mapping.items %}
+                {% for x2, xMean, xEffect in x_mean_effect %}
+                    {% if x1 == x2 %}
+                        {{ xOpt }} (mean = {{ xMean|floatformat:2 }}, effect = {{ xEffect|floatformat:2 }})
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </summary>
         
         <x_mapping>
             {% for x, xOpt in x_mapping.items %}

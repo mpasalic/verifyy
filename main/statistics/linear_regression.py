@@ -78,8 +78,8 @@ class LinearRegression(Regression):
     
     def formatSummaryText(self, keyword, oper):
         self.summaryText = "The data %s be related by a linear relationsip\
-         (R=%.2f). y =  %.2fx + %.2f. F-test: %.2f %s %.2f.\
-         " % (keyword, math.sqrt(self.r_2), self.b_1, self.b_0, self.f_value, oper, self.f_goal)
+         (R=%.2f). y =  %.2fx %s. F-test: %.2f %s %.2f.\
+         " % (keyword, math.sqrt(self.r_2), self.b_1, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
     
     def strongSignificance(self):
         self.formatSummaryText("is likely to", ">")
@@ -92,20 +92,7 @@ class LinearRegression(Regression):
     def weakSignificance(self):
         self.formatSummaryText("is unlikely to be related to", "<")
         pass
-
-    
     
     def summary(self):
         return self.summaryText
     
-    def whatever(self):
-        if self.points == 0 :
-            return "No Data Available"
-        elif self.points < 2:
-            return "Insufficient Data Available"
-        else:
-            likely = "may"
-            if (self.r < 0.2):
-                likely = "is unlikely to"
-            return "The data %(likely)s be linearly related (r=%(r).2f). y =  %(slope).2fx + %(intercept).2f" % \
-                {"slope": self.slope, "intercept": self.intercept, "p": self.ttProb, "r": self.r, "likely": likely}
