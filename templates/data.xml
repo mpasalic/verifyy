@@ -30,8 +30,9 @@
 
 {% if regression %}
 	<xmin>{{ xmin }}</xmin>
-	<ymin>{{ ymin }}</ymin>
-	<xmax>{{ xmax }}</xmax>
+    <xmax>{{ xmax }}</xmax>
+	
+    <ymin>{{ ymin }}</ymin>
 	<ymax>{{ ymax }}</ymax>
     
 	<regression>
@@ -49,7 +50,12 @@
 {% endif %}
 
 {% if onefactor %}
+    <xmin>{{ xmin }}</xmin>
+    <xmax>{{ xmax }}</xmax>
+	
     <onefactor>
+        <summary>{{ onefactor.summmary }}</summary>
+        
         <x_mapping>
             {% for x, xOpt in x_mapping.items %}
                 <mapping from="{{ x }}" to="{{ xOpt }}" />
@@ -66,6 +72,8 @@
 
 {% if discrete %}
     <discrete>
+        <summary>{{ discrete.summary }}</summary>
+        
         <x_mapping>
             {% for x, xOpt in x_mapping.items %}
                 <mapping from="{{ x }}" to="{{ xOpt }}" />

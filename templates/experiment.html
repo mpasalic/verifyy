@@ -128,11 +128,17 @@ function drawColumnChart(xmldata) {
     
     var entriesWrap = xmldata.getElementsByTagName('tally')[0];
     var entries = entriesWrap.getElementsByTagName('cell');
+    var total = 0;
     for (var i = 0; i < entries.length; ++i) {
         var xC = entries[i].getAttribute('row');
         var yC = entries[i].getAttribute('col');
         var val = parseInt(entries[i].getAttribute('count')); 
         table[xC][yC] = val;
+        total += val;
+    }
+    
+    if (total == 0) {
+        throw "Insufficient Data To Display!";
     }
     
     // 3. Draw the data!
@@ -160,6 +166,17 @@ function drawColumnChart(xmldata) {
 
 
 function drawCandleStickChart(xmldata) {
+    var labels = [
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName'), 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')
+    ];
+    var yAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + ", " + 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits');
+
+    var chartCaption = xmldata.getElementsByTagName('chart')[0].getAttribute('caption');
+
+    
     var mapping = {};
     var data = [];
     
@@ -186,9 +203,18 @@ function drawCandleStickChart(xmldata) {
         data.push([label, bmin, bMSigma, bPSigma, bmax]);
     }
     
+    if (data.length == 0) {
+        throw "No data avaialble to display!";
+    }
+    
 	var dataTbl = google.visualization.arrayToDataTable(data, true);
     
-    var options = {legend:'none'};
+    var options = {
+        legend:'none',
+        title: chartCaption,
+        hAxis: { title: labels[0] },
+        vAxis: { title: yAxisText }
+    };
     
     var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
     chart.draw(dataTbl, options);
@@ -325,6 +351,11 @@ function drawChart(xmldata) {
         var entry = [x, y];
         data.push(entry);
     }
+    
+    if (data.length == 0) {
+        throw "No data to display!";
+    }
+    
     
     //1.1 Sort All Data To be On the safe side
     data.sort(function(p1,p2){ return p1[0] - p2[0]; });
@@ -487,13 +518,26 @@ function displayLoadedData(xmldata) {
     
     // We have to do this first, because dygraphs might throw an error if 
     // there is no data
-    var experiment_analysis_summary = xmldata.getElementsByTagName('summary')[0].childNodes[0].nodeValue;
-    document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
+    try {
+        var experiment_analysis_summary = xmldata.getElementsByTagName('summary').childNodes;
+        if (experiment_analysis_summary && experiment_analysis_summary.length > 0) {
+            experiment_analysis_summary = experiment_analysis_summary[0].nodeValue;
+            document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
+        } else {
+            document.getElementById("experiment_analysis_summary").innerHTML="No information available.";
+        }
+    } catch (e) {}
     
     
-    if (regressions.length > 0) { drawChart(xmldata);            }
-    if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
-    if (  discretes.length > 0) { drawColumnChart(xmldata);      }
+    try {
+        if (regressions.length > 0) { drawChart(xmldata);            }
+        if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
+        if (  discretes.length > 0) { drawColumnChart(xmldata);      }
+    } catch (e) {
+        document.getElementById("chart_div").innerHTML = 
+            "<img style=\"width: 600px; height: 400px; padding: 10px;\"" 
+            + " class=\"loading_icon\" src=\"/static/images/no_data_slug.png\"></img>";
+    }
 }
 
 function loadChartData(url) {
@@ -590,13 +634,38 @@ function drawUserTable(xmldata) {
 	
 	var datasetElement = xmldata.getElementsByTagName("dataset")[0];
 	var dataElements = datasetElement.getElementsByTagName("set");
-
+    
+    /* Need to be able to pull mappings of the experiment types */
+    {% if exp.x_type == 'c' %}
+        var xMappings = xmldata.getElementsByTagName("x_mapping")[0].getElementsByTagName("mapping");
+        var xMaps = {};
+        for (var i = 0; i < xMappings.length; ++i) {
+            xMaps[xMappings[i].getAttribute("from")] = xMappings[i].getAttribute("to");
+        }
+    {% endif %}
+    {% if exp.y_type == 'c' %}
+        var yMappings = xmldata.getElementsByTagName("y_mapping")[0].getElementsByTagName("mapping");
+        var yMaps = {};
+        for (var i = 0; i < yMappings.length; ++i) {
+            yMaps[yMappings[i].getAttribute("from")] = yMappings[i].getAttribute("to");
+        }
+    {% endif %}
+    {% if exp.x_type == 't' %}
+        var xMin = parseFloat(xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue);
+        var xMax = parseFloat(xmldata.getElementsByTagName("xmax")[0].childNodes[0].nodeValue);
+        var timefold = xmldata.getElementsByTagName("timefold")[0].getAttribute("period");
+        var xTimeFmtFunc = getDateToStringFunc(timefold, xMax-xMin);
+    {% endif %}
+    
 	data.addRows(dataElements.length + 1);
- 
+
 	for (var i = 0; i < dataElements.length; i++) {
 		var dataElement = dataElements[i];
-		var x = dataElement.getAttribute("x");
+        var x = dataElement.getAttribute("x");
 		var y = dataElement.getAttribute("y");
+        {% if exp.x_type == 'c' %} x = xMaps[parseInt(x)]; {% endif %}
+        {% if exp.y_type == 'c' %} y = xMaps[parseInt(y)]; {% endif %}
+        {% if exp.x_type == 't' %} x = xTimeFmtFunc(x); {% endif %}
 		data.setCell(i, 0, x);
 		data.setCell(i, 1, y);
 		data.setCell(i, 2, dataElement.getAttribute("comment"));
@@ -815,7 +884,8 @@ function addDataEntry() {
         </script>
         <div class="rounded_small_box centered_box" style="width: 650px; ">
             
-            <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;"></div>
+            <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;">
+            </div>
             <div id="filter_selector" style="text-align: center; margin-top: 20px;">
                 <a id="filter_me" class="filter filter_unselected" href="" onclick="setFilter(1); return false;">me</a>
                 <a id="filter_friends" class="filter filter_unselected" href="" onclick="setFilter(2); return false;">friends</a>

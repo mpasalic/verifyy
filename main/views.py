@@ -400,6 +400,7 @@ def create_new(request):
 def create_experiment(request):
     if not request.user.is_authenticated():
         return login(request)
+    errmsg = ["Please fill out all fields"]
     try:
         exp = Experiment()
         exp.x_name = request.POST['x']
@@ -412,32 +413,37 @@ def create_experiment(request):
         exp.user = request.user
         exp.vote = 0
         
+        def process_choices(var, vartype, errmsg):
+            if vartype != 'c':
+                return []
+            options = []
+            i = 0
+            while ('choice_%s_%d' % (var, i)) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_%s_%d' % (var, i))].strip()
+                if len(option.option) > 0:
+                    option.order = i
+                    option.var = var
+                    options.append(option)
+                i = i + 1
+            if len(options) < 2:
+                errmsg[0] = "You must specify at least 2 different states for %s" % var
+                raise KeyError(errmsg)
+            return options
+        
+        choicesX = process_choices('x', exp.x_type, errmsg)
+        choicesY = process_choices('y', exp.y_type, errmsg)
+        
+        # If we've made it this far, we can save everything now
         exp.save()
         
-        # TODO: in options, check for unicodoce
-        if exp.x_type == 'c':
-            i = 0
-            while ('choice_x_%d' % i) in request.POST:
-                option = ChoiceOptions()
-                option.option = request.POST[('choice_x_%d' % i)]
-                if len(tokenize(option.option)) > 0:
-                    option.order = i
-                    option.experiment = exp
-                    option.var = 'x'
-                    option.save()
-                i = i + 1
+        for option in choicesX:
+            option.experiment = exp
+            option.save()
+        for option in choicesY:
+            option.experiment = exp
+            option.save()
         
-        if exp.y_type == 'c':
-            i = 0
-            while ('choice_y_%d' % i) in request.POST:
-                option = ChoiceOptions()
-                option.option = request.POST[('choice_y_%d' % i)]
-                if len(tokenize(option.option)) > 0:
-                    option.order = i
-                    option.experiment = exp
-                    option.var = 'y'
-                    option.save()
-                i = i + 1
         def index_contents(c):
             for w in tokenize(c):
                 ind = Index()
@@ -451,7 +457,7 @@ def create_experiment(request):
                 at = get_auth_token(request)
                 put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
-        return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
+        return render_to_response('new_experiment.html', { 'error_message' : errmsg[0],  'request': request  })
     
     return redirect("/view/%d/" % (exp.id))
 		

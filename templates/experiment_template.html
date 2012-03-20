@@ -15,6 +15,21 @@ typechange = function (variable) {
             var yTypePossibl = document.getElementById('y' + '_opt_c');
             yTypePossibl.disabled="";
         }
+    } else if (variable == 'y') {
+        var yType = document.getElementById(variable + 'type').value;
+        if (yType == 'c') {
+            var xTypePossibl = document.getElementById('x' + '_opt_r');
+            xTypePossibl.disabled="disabled";
+            xTypePossibl = document.getElementById('x' + '_opt_t');
+            xTypePossibl.disabled="disabled";
+            xTypePossibl = document.getElementById('x' + '_opt_c');
+            xTypePossibl.selected="selected";
+        } else {
+            var xTypePossibl = document.getElementById('x' + '_opt_r');
+            xTypePossibl.disabled="";
+            xTypePossibl = document.getElementById('x' + '_opt_t');
+            xTypePossibl.disabled="";        
+        }
     }
     // End verification of valid type combination
     
@@ -28,6 +43,20 @@ typechange = function (variable) {
 	unitsArea = document.getElementById('units_area_' + variable);
 	unitsArea.style['display'] = !shouldDisplayArea ? 'inline' : 'none';
 };
+
+{
+    onLoadPrev = null
+    if (window.onLoad) {
+        onLoadPrev = window.onLoad;
+    }
+    window.onLoad = function() {
+        typechange('x');
+        if (null != onLoadPrev) {
+            onLoadPrev();
+        }
+    };
+}
+
 
 getChoicesDiv = function (variable) {
 	return document.getElementById('choice_area_' + variable + '_optionsdiv');
