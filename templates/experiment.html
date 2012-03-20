@@ -353,7 +353,6 @@ function drawChart(xmldata) {
         {
             labels: labels,
             drawPoints: true,
-            stepPlot:true,
             avoidMinZero:true,
             pointSize: 4,
             highlightCircleSize: 5,
@@ -432,7 +431,6 @@ function drawChart(xmldata) {
     pc_opts['xlabel']=xAxisText;
     pc_opts['ylabel']=yAxisText;
     pc_opts['title'] =chartCaption;
-    pc_opts['stepPlot'] = true;
     pc_opts['avoidMinZero'] = true;
     pc_opts['highlightCircleSize'] = 4;
     pc_opts['highlightSeriesOpts'] = { pointSize: 5 };
