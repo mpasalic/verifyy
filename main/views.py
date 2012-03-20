@@ -181,7 +181,7 @@ def submit(request, exp_id):
         yraw = request.POST['y'];
         x_enum = None
         y_enum = None
-        
+           
         # See what kind of experiment are we doing:
         
         if exp.x_type == 'c':
@@ -199,14 +199,14 @@ def submit(request, exp_id):
         try:
             x_val = parseTypeOrError(xraw, exp.x_type, x_enum)
             y_val = parseTypeOrError(yraw, exp.y_type, y_enum)
-            
             data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
             data.save()
-        
-        except ValueError:
+        except ValueError as err:
+            #return render_to_response('debugger_response.xml', {'debug': {}})
             return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
-        
-    return redirect("/view/%d/" % (exp.id));
+    
+    #return render_to_response('debugger_response.xml', {'debug': {}})
+    return redirect("/view/%d/" % int(exp_id));
 	
 def new_experiment(request):
     return render_to_response('new_experiment.html', {'request': request})
@@ -255,7 +255,7 @@ def data(request, exp_id):
     data = get_data(request, exp_id)
     
     #TODO: add a conditional switch on which folding to use
-    time_fold = TIME_FOLDING.WEEKLY
+    time_fold = TIME_FOLDING.WEEKLY #WEEKLY
     
     analysis = Analysis()
     renderparams = {
@@ -276,7 +276,7 @@ def data(request, exp_id):
         if exp.y_type != 'c':
             if exp.x_type == 't':
                 convertTimeByFolding(data, time_fold)
-                renderparams['timefold'] = TIME_FOLDING.strValueOf(time_fold)
+                renderparams['timefold'] = TIME_FOLDING().strValueOf(time_fold)
             kind = REGRESSION_KIND
             analysis = LinearRegression()
             #analysis = Poly2OrderRegression()

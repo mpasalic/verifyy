@@ -194,7 +194,124 @@ function drawCandleStickChart(xmldata) {
     chart.draw(dataTbl, options);
 }
 
+function padZero(num) {
+    str = "" + num;
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
+
+function getTimeParserFunc(timefold) {
+    var funHourly = function(nsecs) {
+        var timeObj = new Date();
+        timeObj.setYear(2005);
+        timeObj.setMonth(11);
+        timeObj.setDate(12);
+        timeObj.setHours(0);
+        timeObj.setMinutes(Math.floor(nsecs / 60));
+        nsecs = nsecs % 60;
+        timeObj.setSeconds(nsecs);
+        timeObj.setMilliseconds(0);
+        return timeObj;
+    };
+    if (timefold == 'Hourly') return funHourly;
+    
+    var funDaily = function(nsecs) {
+        var hours = (nsecs / (60*60));
+        var timeObj = funHourly(nsecs % (60*60));
+        timeObj.setHours(hours);
+        return timeObj;
+    };
+    if (timefold == 'Daily') return funDaily;
+    
+    var funWeekly = function(nsecs) {
+        var dayOfTheWeek = Math.floor( nsecs / (60*60*24) );
+        var timeObj = funDaily(nsecs % (24*60*60));
+        timeObj.setDate(12 + dayOfTheWeek);
+        return timeObj;
+    };
+    
+    if (timefold == 'Weekly') return funWeekly;
+    
+    var funByDefault = function(nsecs) {
+        return new Date(Math.floor(nsecs*1000));
+    }
+}
+
+function getDateToStringFunc(timefold, maxDeltaSecs) {
+    // Use max delta to figure out the proper resolution
+    var funHourly = function(timeObj) {
+        return padZero(timeObj.getMinutes()) + ":" + padZero(timeObj.getSeconds());
+    };
+    if (maxDeltaSecs < 60*60) return funHourly;
+
+    var funDaily = function(timeObj) {
+        return padZero(timeObj.getHours()) + ":" + padZero(timeObj.getMinutes());
+    };
+    if (maxDeltaSecs < 24*60*60) return funDaily;
+    
+    
+    if (timefold == 'Weekly') {
+        var daysOfWeek = [
+            "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+        ];
+        
+        var funWeekly = function(timeObj) {
+            return daysOfWeek[ timeObj.getDay() ] + " " + funDaily(timeObj);
+        };
+        
+        return funWeekly;
+    } else {
+        var funDate = function(timeObj) {
+            return  timeObj.getYear()
+            + "/" + padZero(timeObj.getMonth()) 
+            + "/" + padZero(timeObj.getDate());
+        };
+        
+        var funByDefault = function(timeObj) {
+            return  padZero(timeObj.getFullYear()) 
+            + "-" + padZero(timeObj.getMonth()) 
+            + "-" + padZero(timeObj.getDate())
+            + " " + funDaily(timeObj);
+        };
+        
+        return funByDefault;
+    }
+}
+
+function getFormatterFunc(timefold, maxdelta) {
+    if (timefold == null) {
+        // This is just a regular real-value formatter
+        return function(x) {
+            return x.toPrecision(4);
+        };
+    } else {
+        // We need a super-special time formatter
+        var parserFunc = getTimeParserFunc(timefold);
+        var formatterFunc = getDateToStringFunc(timefold, maxdelta);
+        return function(nsecs) {
+            return formatterFunc(parserFunc(nsecs));
+        };    
+    }
+}
+
 function drawChart(xmldata) {
+    //0. Prepare for 'unfolding' time series data: create an appropriate function
+    var folding_kind = xmldata.getElementsByTagName("timefold");
+    if (folding_kind.length > 0) {
+        folding_kind = folding_kind[0].getAttribute('period');
+    } else {
+        folding_kind = null;
+    }
+    
+    var xmax = xmldata.getElementsByTagName("xmax")[0].childNodes[0].nodeValue;
+    var xmin = xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue;
+    var ymax = xmldata.getElementsByTagName("ymax")[0].childNodes[0].nodeValue;
+    var ymin = xmldata.getElementsByTagName("ymin")[0].childNodes[0].nodeValue;
+
+    var deltaX = parseFloat(xmax) - parseFloat(xmin);
+    var deltaY = parseFloat(ymax) - parseFloat(ymin);
     
     //1. Fill in the data array
     var datasetElement = xmldata.getElementsByTagName("dataset")[0];
@@ -205,7 +322,8 @@ function drawChart(xmldata) {
     for (var i = 0; i < dataElements.length; ++i) {
         var x = parseFloat(dataElements[i].getAttribute("x"));
         var y = parseFloat(dataElements[i].getAttribute("y"));
-        data.push([x,y]);
+        var entry = [x, y];
+        data.push(entry);
     }
     
     //1.1 Sort All Data To be On the safe side
@@ -256,6 +374,8 @@ function drawChart(xmldata) {
     //   0..tranges intervals are processed
     //   
     //   We also need to insert points from the original data
+    //
+    //
     //   TODO: Make original points insertion code more efficient? Also, we destroy data
     var pc_data = [];
     
@@ -297,6 +417,13 @@ function drawChart(xmldata) {
         }
     }
     
+    while (data.length > 0) {
+        var datapt = data.shift();
+        var entry = [datapt[0], datapt[1], null];
+        pc_data.push(entry);
+
+    }
+    
     //5. Draw Regression on the plot
     pc_labels = [];
     pc_colors = [];
@@ -329,15 +456,20 @@ function drawChart(xmldata) {
             };
         }
     }
-    
+    pc_opts['xAxisLabelWidth'] = 100;
     pc_opts['axes']['x'] = {
-                valueFormatter: function (p) { return p.toFixed(2); },
-                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+                axisLabelFormatter: getFormatterFunc(folding_kind, deltaX),
+                valueFormatter: getFormatterFunc(folding_kind, deltaX) 
             };
     pc_opts['axes']['y'] = {
-                valueFormatter: function (p) { return p.toFixed(2); },
-                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+                valueFormatter: getFormatterFunc(null, deltaY) ,
+                axisLabelFormatter: getFormatterFunc(null, deltaY) 
             };
+    
+    if (null != folding_kind) {
+        pc_opts['axes']['x']['pixelsPerLabel'] = 100;
+    }        
+    
     
     pc_opts.file = pc_data;
     pc_opts.labels = pc_labels;
@@ -355,12 +487,15 @@ function displayLoadedData(xmldata) {
     var onefactors = xmldata.getElementsByTagName("onefactor");
     var discretes = xmldata.getElementsByTagName("discrete");
     
+    // We have to do this first, because dygraphs might throw an error if 
+    // there is no data
+    var experiment_analysis_summary = xmldata.getElementsByTagName('summary')[0].childNodes[0].nodeValue;
+    document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
+    
+    
     if (regressions.length > 0) { drawChart(xmldata);            }
     if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
     if (  discretes.length > 0) { drawColumnChart(xmldata);      }
-    
-    var experiment_analysis_summary = xmldata.getElementsByTagName('summary')[0].childNodes[0].nodeValue;
-    document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
 }
 
 function loadChartData(url) {

@@ -28,14 +28,14 @@ class TIME_FOLDING:
     SECONDS_IN_HOUR = 60 * 60
     SECONDS_IN_DAY =  24 * SECONDS_IN_HOUR
     
-    def strValueOf(enumVal):
-        if enumVal == NO_FOLD:
+    def strValueOf(self, enumVal):
+        if enumVal == self.NO_FOLD:
             return "None"
-        elif enumVal == HOURLY:
+        elif enumVal == self.HOURLY:
             return "Hourly"
-        elif enumVal == DAILY:
+        elif enumVal == self.DAILY:
             return "Daily"
-        elif enumVal == WEEKLY:
+        elif enumVal == self.WEEKLY:
             return "Weekly"
         raise KeyError("Not a valid TIME_FOLDING constant")
 
