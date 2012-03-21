@@ -60,9 +60,12 @@ class ChiSquareTest(object):
         chi_square = 0.0
         for xi in self.classesX:
             for yi in self.classesY:
+                if (0 == null_hypothesis[xi][yi]):
+                    # Nothing we can do about this case, too little data to process
+                    return;
                 e_ij = (null_hypothesis[xi][yi] - self.table[xi][yi])
                 chi_square += e_ij * e_ij / null_hypothesis[xi][yi]
-        
+                
         df = (len(self.classesX)-1) * (len(self.classesY)-1)
         self.pval = chi_square_p_value(df, chi_square)
         self.chi_square = chi_square
