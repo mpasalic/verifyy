@@ -61,9 +61,6 @@ def put_wall(at, msg):
                        "name": "View Experiment",
                        "link": "http://www.verifyy.com/"
                     }])
-          
-    
-
 
 def msg(request):
     at = get_auth_token(request)
@@ -406,8 +403,8 @@ def create_experiment(request):
     if not request.user.is_authenticated():
         return login(request)
     errmsg = ["Please fill out all fields"]
+    exp = Experiment()
     try:
-        exp = Experiment()
         exp.x_name = request.POST['x']
         exp.y_name = request.POST['y']
         exp.description = request.POST['desc']
@@ -417,6 +414,16 @@ def create_experiment(request):
         exp.y_type = request.POST['ytype']
         exp.user = request.user
         exp.vote = 0
+		
+        if len(exp.x_name) < 3:
+            errmsg[0] = "The x variable must be at least 3 letters."
+            raise KeyError(errmsg)
+        if len(exp.y_name) < 3:
+            errmsg[0] = "The y variable must be at least 3 letters."
+            raise KeyError(errmsg)
+        if len(exp.description) == 0:
+            errmsg[0] = "You must provide a description."
+            raise KeyError(errmsg)
         
         def process_choices(var, vartype, errmsg):
             if vartype != 'c':
@@ -454,7 +461,8 @@ def create_experiment(request):
         at = get_auth_token(request)
         put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
-        return render_to_response('new_experiment.html', { 'error_message' : errmsg[0],  'request': request  })
+        return render_to_response('new_experiment.html', {'error_message':errmsg[0], 'request':request, 'exp':exp})
+	
     
     return redirect("/view/%d/" % (exp.id))
 		
