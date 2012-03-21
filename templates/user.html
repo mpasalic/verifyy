@@ -15,13 +15,25 @@
 
 <div style="min-height: 20px;">
 </div>
-<h1>{{ user.username }}</h1>
-<h2>Experiments joined</h2>
-<div>
+
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
+<div class="box_header">user</div>
+<strong>{{ user.username }}</strong> <br />
+Joined on {{ user.date_joined }}
+</div>
+
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
+<div class="box_header">experiments created</div>
+{% include 'list.html' with exp=user.experiments.all %}
+</div>
+
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
+<div class="box_header">experiments joined</div>
 {% include 'list.html' %}
 </div>
-<h2>Data points</h2>
-<div>
+
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
+<div class="box_header">data points submitted</div>
 {% include 'data.html' %}
 </div>
 
