@@ -74,12 +74,20 @@ class Friend(models.Model):
 	friend = models.ForeignKey(User)
 	created = models.DateTimeField(auto_now=True, default=datetime.now())
 
-class Index(models.Model):
-	word = models.CharField(max_length=256)
-	doc = models.ForeignKey(Experiment)
+class WordIndexEntry(models.Model):
+    svec = models.TextField()
+    word = models.CharField(max_length=128)
+    
+class DocIndexEntry(models.Model):
+    svec = models.TextField()
+    doc = models.ForeignKey(Experiment)
 
-	def __str__(self):
-		return self.word + " => " + str(self.doc.id)
+#class Index(models.Model):
+#	word = models.CharField(max_length=256)
+#	doc = models.ForeignKey(Experiment)
+#
+#	def __str__(self):
+#		return self.word + " => " + str(self.doc.id)
 
 class ChoiceOptions(models.Model):
 	option = models.CharField(max_length=256)

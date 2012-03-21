@@ -2,6 +2,7 @@
 
 from main.models import *
 from main.conversion import parseTypeOrError, convertTimeByFolding, TIME_FOLDING
+from main.searchapi import addToIndex, search1
 
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
@@ -203,10 +204,10 @@ def submit(request, exp_id):
             data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
             data.save()
         except ValueError as err:
-            #return render_to_response('debugger_response.xml', {'debug': {}})
+            #return render_to_response('debugger_response.xml', {'debug': {'1':err}})
             return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
     
-    #return render_to_response('debugger_response.xml', {'debug': {}})
+    #return render_to_response('debugger_response.xml', {'debug': {'1':err}})
     return redirect("/view/%d/" % int(exp_id));
 	
 def new_experiment(request):
@@ -448,18 +449,10 @@ def create_experiment(request):
             option.experiment = exp
             option.save()
         
-        def index_contents(c):
-            for w in tokenize(c):
-                ind = Index()
-                ind.doc = exp
-                ind.word = w
-                ind.save()
-                index_contents(exp.x_name)
-                index_contents(exp.y_name)
-                index_contents(exp.description)
-                
-                at = get_auth_token(request)
-                put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
+        addToIndex(exp)
+        
+        at = get_auth_token(request)
+        put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
         return render_to_response('new_experiment.html', { 'error_message' : errmsg[0],  'request': request  })
     
@@ -490,12 +483,7 @@ def search(request):
 	q = ""
 	if 'q' in request.GET:
 		q = request.GET['q']
-
-                indexes = set()
-                for w in tokenize(q):
-                    indexes.update(map(lambda r: r.doc, Index.objects.all().filter(word=w)))
-
-		found_entries = indexes
+		found_entries = search1(q)
 	else:
 		found_entries = ''
 	return render_to_response('search.html', { 'search': q, 'list': found_entries, 'request': request })
