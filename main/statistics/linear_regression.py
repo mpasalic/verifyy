@@ -3,6 +3,8 @@ import math
 from main.statistics.common import Regression
 from main.statistics.f_table import f_table_value
 
+POSITIVIE_ZERO = +0.00000001
+
 # Linear regression model
 class LinearRegression(Regression):
     b_1 = 0.0
@@ -22,7 +24,7 @@ class LinearRegression(Regression):
     
     def regress(self, x, y):
         self.points = len(x)
-        if len(x) < 2:
+        if len(x) < 5:
             return;
         
         self.xmin = min(x)
@@ -32,17 +34,24 @@ class LinearRegression(Regression):
         n = self.points
         x_mean = 0.0
         y_mean = 0.0
-        sum_xy = 0.0
-        sum_x_2 = 0.0
         for i in range(0, self.points):
-            sum_xy += x[i] * y[i]
-            sum_x_2 += x[i]*x[i]
             y_mean += y[i]
             x_mean += x[i]
         y_mean = y_mean / float(len(y))
         x_mean = x_mean / float(len(x))
+
+        sum_xy_err = 0.0
+        sum_x_2_err = 0.0
         
-        self.b_1 = (sum_xy - x_mean*y_mean)/(sum_x_2 - n*x_mean)
+        for i in range(0, self.points):
+            sum_xy_err = (x[i]-x_mean)*(y[i]-y_mean)
+            sum_x_2_err = (x[i] - x_mean)*(x[i] - x_mean)
+        
+        if (sum_x_2_err == 0):
+            # This means that all the points are located at the same x point)
+            return;
+        
+        self.b_1 = sum_xy_err / sum_x_2_err
         self.b_0 = y_mean - self.b_1 * x_mean
         self.setRegressionFormula()
         
@@ -59,13 +68,17 @@ class LinearRegression(Regression):
         pass
         
         #Now, r squared = SSR/(SSR + SSE)
-        
-        self.r_2 = SSR/(SSR+SSE)
-        
+        if (SSE < POSITIVIE_ZERO):
+            # Perfect fir, r_2 is over the charts
+            self.r_2 = 1.0
+            self.f_value = 0.1+f_table_value(1, n-2)*10
+        else:
+            self.r_2 = SSR/(SSR+SSE)
+            MSM = SSR / (1)
+            MSE = SSE / (n - 2)
+            self.f_value = MSM/MSE
+            
         #Perform an f-test
-        MSM = SSR / (1)
-        MSE = SSE / (n - 2)
-        self.f_value = MSM/MSE
         self.f_goal  = f_table_value(1, n - 2)
         
         if self.f_value > 10 * self.f_goal:
