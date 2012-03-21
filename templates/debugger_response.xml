@@ -1,0 +1,7 @@
+<debug_response>
+
+{% for key, val in debug.items %}
+    <entry key="{{ key }}">{{ val }}</entry>
+{% endfor %}
+
+</debug_response>

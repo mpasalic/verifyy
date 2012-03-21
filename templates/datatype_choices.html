@@ -1,4 +1,7 @@
 <select id="{{ var }}type" name="{{ var }}type" onchange="typechange('{{ var }}')">
-	<option value="r">Real Number</option>
-	<option value="c">Choice</option>
+    <option id="{{ var }}_opt_r" value="r" selected="selected">Real Number</option>
+    <option id="{{ var }}_opt_c" value="c">Choice</option>
+    {% if var == 'x' %}
+        <option id="{{ var }}_opt_t" value="t">Time</option>
+    {% endif %}
 </select>

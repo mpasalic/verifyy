@@ -127,11 +127,17 @@ function drawColumnChart(xmldata) {
     
     var entriesWrap = xmldata.getElementsByTagName('tally')[0];
     var entries = entriesWrap.getElementsByTagName('cell');
+    var total = 0;
     for (var i = 0; i < entries.length; ++i) {
         var xC = entries[i].getAttribute('row');
         var yC = entries[i].getAttribute('col');
         var val = parseInt(entries[i].getAttribute('count')); 
         table[xC][yC] = val;
+        total += val;
+    }
+    
+    if (total == 0) {
+        throw "Insufficient Data To Display!";
     }
     
     // 3. Draw the data!
@@ -159,6 +165,17 @@ function drawColumnChart(xmldata) {
 
 
 function drawCandleStickChart(xmldata) {
+    var labels = [
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName'), 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')
+    ];
+    var yAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + ", " + 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits');
+
+    var chartCaption = xmldata.getElementsByTagName('chart')[0].getAttribute('caption');
+
+    
     var mapping = {};
     var data = [];
     
@@ -185,15 +202,141 @@ function drawCandleStickChart(xmldata) {
         data.push([label, bmin, bMSigma, bPSigma, bmax]);
     }
     
+    if (data.length == 0) {
+        throw "No data avaialble to display!";
+    }
+    
 	var dataTbl = google.visualization.arrayToDataTable(data, true);
     
-    var options = {legend:'none'};
+    var options = {
+        legend:'none',
+        title: chartCaption,
+        hAxis: { title: labels[0] },
+        vAxis: { title: yAxisText }
+    };
     
     var chart = new google.visualization.CandlestickChart(document.getElementById('chart_div'));
     chart.draw(dataTbl, options);
 }
 
+function padZero(num) {
+    str = "" + num;
+    if (str.length == 1) {
+        str = "0" + str;
+    }
+    return str;
+}
+
+function getTimeParserFunc(timefold) {
+    var funHourly = function(nsecs) {
+        var timeObj = new Date();
+        timeObj.setYear(2005);
+        timeObj.setMonth(11);
+        timeObj.setDate(12);
+        timeObj.setHours(0);
+        timeObj.setMinutes(Math.floor(nsecs / 60));
+        nsecs = nsecs % 60;
+        timeObj.setSeconds(nsecs);
+        timeObj.setMilliseconds(0);
+        return timeObj;
+    };
+    if (timefold == 'Hourly') return funHourly;
+    
+    var funDaily = function(nsecs) {
+        var hours = (nsecs / (60*60));
+        var timeObj = funHourly(nsecs % (60*60));
+        timeObj.setHours(hours);
+        return timeObj;
+    };
+    if (timefold == 'Daily') return funDaily;
+    
+    var funWeekly = function(nsecs) {
+        var dayOfTheWeek = Math.floor( nsecs / (60*60*24) );
+        var timeObj = funDaily(nsecs % (24*60*60));
+        timeObj.setDate(12 + dayOfTheWeek);
+        return timeObj;
+    };
+    
+    if (timefold == 'Weekly') return funWeekly;
+    
+    var funByDefault = function(nsecs) {
+        return new Date(Math.floor(nsecs*1000));
+    }
+}
+
+function getDateToStringFunc(timefold, maxDeltaSecs) {
+    // Use max delta to figure out the proper resolution
+    var funHourly = function(timeObj) {
+        return padZero(timeObj.getMinutes()) + ":" + padZero(timeObj.getSeconds());
+    };
+    if (maxDeltaSecs < 60*60) return funHourly;
+
+    var funDaily = function(timeObj) {
+        return padZero(timeObj.getHours()) + ":" + padZero(timeObj.getMinutes());
+    };
+    if (maxDeltaSecs < 24*60*60) return funDaily;
+    
+    
+    if (timefold == 'Weekly') {
+        var daysOfWeek = [
+            "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+        ];
+        
+        var funWeekly = function(timeObj) {
+            return daysOfWeek[ timeObj.getDay() ] + " " + funDaily(timeObj);
+        };
+        
+        return funWeekly;
+    } else {
+        var funDate = function(timeObj) {
+            return  timeObj.getYear()
+            + "/" + padZero(timeObj.getMonth()) 
+            + "/" + padZero(timeObj.getDate());
+        };
+        
+        var funByDefault = function(timeObj) {
+            return  padZero(timeObj.getFullYear()) 
+            + "-" + padZero(timeObj.getMonth()) 
+            + "-" + padZero(timeObj.getDate())
+            + " " + funDaily(timeObj);
+        };
+        
+        return funByDefault;
+    }
+}
+
+function getFormatterFunc(timefold, maxdelta) {
+    if (timefold == null) {
+        // This is just a regular real-value formatter
+        return function(x) {
+            return x.toPrecision(4);
+        };
+    } else {
+        // We need a super-special time formatter
+        var parserFunc = getTimeParserFunc(timefold);
+        var formatterFunc = getDateToStringFunc(timefold, maxdelta);
+        return function(nsecs) {
+            return formatterFunc(parserFunc(nsecs));
+        };    
+    }
+}
+
 function drawChart(xmldata) {
+    //0. Prepare for 'unfolding' time series data: create an appropriate function
+    var folding_kind = xmldata.getElementsByTagName("timefold");
+    if (folding_kind.length > 0) {
+        folding_kind = folding_kind[0].getAttribute('period');
+    } else {
+        folding_kind = null;
+    }
+    
+    var xmax = xmldata.getElementsByTagName("xmax")[0].childNodes[0].nodeValue;
+    var xmin = xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue;
+    var ymax = xmldata.getElementsByTagName("ymax")[0].childNodes[0].nodeValue;
+    var ymin = xmldata.getElementsByTagName("ymin")[0].childNodes[0].nodeValue;
+
+    var deltaX = parseFloat(xmax) - parseFloat(xmin);
+    var deltaY = parseFloat(ymax) - parseFloat(ymin);
     
     //1. Fill in the data array
     var datasetElement = xmldata.getElementsByTagName("dataset")[0];
@@ -202,14 +345,34 @@ function drawChart(xmldata) {
     var data = [];
     
     for (var i = 0; i < dataElements.length; ++i) {
-        var x = dataElements[i].getAttribute("x");
-        var y = dataElements[i].getAttribute("y");
-        data.push([x,y]);
+        var x = parseFloat(dataElements[i].getAttribute("x"));
+        var y = parseFloat(dataElements[i].getAttribute("y"));
+        var entry = [x, y];
+        data.push(entry);
     }
+    
+    if (data.length == 0) {
+        throw "No data to display!";
+    }
+    
+    
+    //1.1 Sort All Data To be On the safe side
+    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
     
     //2. Data Array Filled.
     //   Create labels
-    labels = ['TODO_xaxisname', xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')];
+    var labels = [
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName'), 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')
+    ];
+    var xAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName') + ", " +
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xUnits');
+    
+    var yAxisText = 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + ", " + 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits');
+    var chartCaption = xmldata.getElementsByTagName('chart')[0].getAttribute('caption');
     
     var orig_colors = [];
     
@@ -220,6 +383,9 @@ function drawChart(xmldata) {
         {
             labels: labels,
             drawPoints: true,
+            avoidMinZero:true,
+            pointSize: 4,
+            highlightCircleSize: 5,
             strokeWidth: 0.0,
             drawCallback: function(g, is_initial) {
                 if (!is_initial) { return; }
@@ -237,14 +403,18 @@ function drawChart(xmldata) {
     //   0..tranges intervals are processed
     //   
     //   We also need to insert points from the original data
+    //
+    //
     //   TODO: Make original points insertion code more efficient? Also, we destroy data
-    data.sort(function(p1,p2){ return p1[0] - p2[0]; });
     var pc_data = [];
     
     var pcurve = xmldata.getElementsByTagName('parametric_curve')[0]; //Can always add more later
     var tranges = parseInt(pcurve.getElementsByTagName('t_count')[0].textContent);
     // Number of points to generate per parametric range. Use a hardcoded value for now
     var points = Math.round(1000 / tranges);
+    // We need this to interpolate regression value when data point falls between
+    //  regression curve points
+    var pt_y_prev = null;
     eval('x_func = ' + pcurve.getElementsByTagName('x_func')[0].textContent);
     eval('y_func = ' + pcurve.getElementsByTagName('y_func')[0].textContent);
     
@@ -257,18 +427,30 @@ function drawChart(xmldata) {
             if (point[0] < data[0][0]) {
                 entry.push(null); //if there is no data for original series, skip it
             } else {
-                while (point[0] > data[0][0]) {
-                    datapt = data.shift();
+                while ((data.length > 0) && (point[0] >= data[0][0])) {
+                    var datapt = data.shift();
                     entry = [];
-                    entry.push(datapt[0], datapt[1]);
+                    // NOTE: Here we also have to interpolate y for missing x-value
+                    var y_intp = pt_y_prev == null? null : 0.5*(point[1] + pt_y_prev);
+                    entry.push(datapt[0], datapt[1], y_intp);
                     pc_data.push(entry);
                 }
+                
                 entry = [];
                 entry.push(point[0]);
+                entry.push(null);
             }
+            pt_y_prev = point[1];
             entry.push( point[1] );
             pc_data.push( entry );
         }
+    }
+    
+    while (data.length > 0) {
+        var datapt = data.shift();
+        var entry = [datapt[0], datapt[1], null];
+        pc_data.push(entry);
+
     }
     
     //5. Draw Regression on the plot
@@ -276,6 +458,12 @@ function drawChart(xmldata) {
     pc_colors = [];
     pc_opts = {};
     pc_opts['axes']={};
+    pc_opts['xlabel']=xAxisText;
+    pc_opts['ylabel']=yAxisText;
+    pc_opts['title'] =chartCaption;
+    pc_opts['avoidMinZero'] = true;
+    pc_opts['highlightCircleSize'] = 4;
+    pc_opts['highlightSeriesOpts'] = { pointSize: 5 };
     
     for (var i = 0; i < labels.length; ++i) {
         pc_labels.push(labels[i]);
@@ -284,9 +472,11 @@ function drawChart(xmldata) {
             var label = labels[i] + " Regression";
             pc_labels.push(label);
             var c = new RGBColor(orig_colors[i-1]);
-            c.r = Math.floor(255 - 0.5 * (255 - c.r));
-            c.g = Math.floor(255 - 0.5 * (255 - c.g));
-            c.b = Math.floor(255 - 0.5 * (255 - c.b));
+            var cp = new RGBColor(orig_colors[i-1]); 
+            // Transpose the color palette
+            c.r = 0.5*(cp.b + cp.g);
+            c.g = 0.5*(cp.r + cp.b);
+            c.b = 0.5*(cp.r + cp.g);
             pc_colors.push(c.toHex());
             pc_opts[label] = {
                 drawPoints: false,
@@ -294,15 +484,20 @@ function drawChart(xmldata) {
             };
         }
     }
-    
+    pc_opts['xAxisLabelWidth'] = 100;
     pc_opts['axes']['x'] = {
-                valueFormatter: function (p) { return p.toFixed(2); },
-                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+                axisLabelFormatter: getFormatterFunc(folding_kind, deltaX),
+                valueFormatter: getFormatterFunc(folding_kind, deltaX) 
             };
     pc_opts['axes']['y'] = {
-                valueFormatter: function (p) { return p.toFixed(2); },
-                //axisLabelFormatter: function (p) { return "1alf(" + p.toFixed(2); }                
+                valueFormatter: getFormatterFunc(null, deltaY) ,
+                axisLabelFormatter: getFormatterFunc(null, deltaY) 
             };
+    
+    if (null != folding_kind) {
+        pc_opts['axes']['x']['pixelsPerLabel'] = 100;
+    }        
+    
     
     pc_opts.file = pc_data;
     pc_opts.labels = pc_labels;
@@ -316,19 +511,66 @@ function drawChart(xmldata) {
  *
  */
 function displayLoadedData(xmldata) {
-    var regressions = xmldata.getElementsByTagName("regression");
-    var onefactors = xmldata.getElementsByTagName("onefactor");
-    var discretes = xmldata.getElementsByTagName("discrete");
     
-    if (regressions.length > 0) { drawChart(xmldata);            }
-    if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
-    if (  discretes.length > 0) { drawColumnChart(xmldata);      }
+    var regressionEls = xmldata.getElementsByTagName("regression");
+    var onefactorsEls = xmldata.getElementsByTagName("onefactor");
+    var discretesEls = xmldata.getElementsByTagName("discrete");
+    
+    var regressions = []; var onefactors = []; var discretes = [];
+    
+    var query = xmldata.getElementsByTagName("regression");
+    for (var i = 0; i < regressionEls.length; ++i) {
+        regressions.push(regressionEls[i]);
+    }
+    query = xmldata.getElementsByTagName("onefactor");
+    for (var i = 0; i < query.length; ++i) {
+        onefactors.push(query[i]);
+    }
+    query = xmldata.getElementsByTagName("discrete");
+    for (var i = 0; i < query.length; ++i) {
+        discretes.push(query[i]);
+    }
+
+    
+    // We have to do this first, because dygraphs might throw an error if 
+    // there is no data
+    try {
+        var dataset_obj = xmldata.getElementsByTagName('dataset');
+        if (dataset_obj.length > 0) {
+            dataset_obj = dataset_obj[0];
+            document.getElementById("experiment_data_points").innerHTML = dataset_obj.getAttribute("size");
+        } else {
+            document.getElementById("experiment_data_points").innerHTML= "0.";
+        }
+        
+        var experiment_analysis_summary = xmldata.getElementsByTagName('summary');
+        if (experiment_analysis_summary.length > 0) {
+            experiment_analysis_summary = experiment_analysis_summary[0];
+            if (experiment_analysis_summary.childNodes.length > 0) {
+                experiment_analysis_summary = experiment_analysis_summary.childNodes[0].nodeValue;
+                document.getElementById("experiment_analysis_summary").innerHTML=experiment_analysis_summary;
+            } else {
+                document.getElementById("experiment_analysis_summary").innerHTML="No information available.";
+            }
+        }
+    } catch (e) {}
+    
+    
+    try {
+        if (regressions.length > 0) { drawChart(xmldata);            }
+        if ( onefactors.length > 0) { drawCandleStickChart(xmldata); }
+        if (  discretes.length > 0) { drawColumnChart(xmldata);      }
+    } catch (e) {
+        document.getElementById("chart_div").innerHTML = 
+            "<img style=\"width: 600px; height: 400px; padding: 10px;\"" 
+            + " class=\"loading_icon\" src=\"/static/images/no_data_slug.png\"></img>";
+    }
 }
 
 function loadChartData(url) {
 	
 	document.getElementById("chart_div").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
-	document.getElementById("experiment_regression_summary").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
+	document.getElementById("experiment_analysis_summary").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>";
 	document.getElementById("experiment_data_points").innerHTML = "<img class=\"loading_icon\" src=\"/static/images/ajax-loader.gif\"></img>"; 
 	
 	var xmlhttp;
@@ -418,21 +660,34 @@ function drawUserTable(xmldata) {
 	
 	var datasetElement = xmldata.getElementsByTagName("dataset")[0];
 	var dataElements = datasetElement.getElementsByTagName("set");
-	
-	var xMapping = {};
-    var yMapping = {};
     
-    xMapping = loadLabelMapping(xmldata, 'x');
-	yMapping = loadLabelMapping(xmldata, 'y');
-	
+    /* Need to be able to pull mappings of the experiment types */
+    {% if exp.x_type == 'c' %}
+        var xMapping = {};
+		xMapping = loadLabelMapping(xmldata, 'x');
+    {% endif %}
+    {% if exp.y_type == 'c' %}
+        var yMapping = {};
+		yMapping = loadLabelMapping(xmldata, 'y');
+    {% endif %}
+    {% if exp.x_type == 't' %}
+        var xMin = parseFloat(xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue);
+        var xMax = parseFloat(xmldata.getElementsByTagName("xmax")[0].childNodes[0].nodeValue);
+        var timefold = xmldata.getElementsByTagName("timefold")[0].getAttribute("period");
+        var xTimeFmtFunc = getDateToStringFunc(timefold, xMax-xMin);
+    {% endif %}
+    
 	data.addRows(dataElements.length + 1);
- 
+
 	for (var i = 0; i < dataElements.length; i++) {
 		var dataElement = dataElements[i];
-		var x = dataElement.getAttribute("x");
+        var x = dataElement.getAttribute("x");
 		var y = dataElement.getAttribute("y");
-		data.setCell(i, 0, ((typeof xMapping != 'undefined') && xMapping[parseInt(x)]) ? xMapping[parseInt(x)] : x);
-		data.setCell(i, 1, ((typeof yMapping != 'undefined') && yMapping[parseInt(y)]) ? yMapping[parseInt(y)] : y);
+        {% if exp.x_type == 'c' %} x = xMapping[parseInt(x)]; {% endif %}
+        {% if exp.y_type == 'c' %} y = yMapping[parseInt(y)]; {% endif %}
+        {% if exp.x_type == 't' %} x = xTimeFmtFunc(x); {% endif %}
+		data.setCell(i, 0, x);
+		data.setCell(i, 1, y);
 		data.setCell(i, 2, dataElement.getAttribute("comment"));
 	}
 	
@@ -613,16 +868,22 @@ function addDataEntry() {
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
 					<td style="width: 100%">
-					One of {% if exp.x_type = 'i' %}{{ exp.value_desc }}{% endif %}
-					{% if exp.x_type == 'c' %}{% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+                    {% if exp.x_type == 'c' %}
+                        One of {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                    {% else %}
+                        In units of {{ exp.x_units }}
+                    {% endif %}
 					</td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">affects</td>
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
 					<td style="width: 100%">
-                    One of {% if exp.y_type = 'i' %}{{ exp.value_desc }}{% endif %}
-					{% if exp.y_type == 'c' %}{% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}{% endif %}
+                    {% if exp.y_type == 'c' %}
+                        One of {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                    {% else %}
+                        In units of {{ exp.y_units }}
+                    {% endif %}
 					<td style="width: 100%">
                 </tr>
                 <tr>
@@ -643,7 +904,8 @@ function addDataEntry() {
         </script>
         <div class="rounded_small_box centered_box" style="width: 650px; ">
             
-            <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;"></div>
+            <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;">
+            </div>
             <div id="filter_selector" style="text-align: center; margin-top: 20px;">
                 <a id="filter_me" class="filter filter_unselected" href="" onclick="setFilter(1); return false;">me</a>
                 <a id="filter_friends" class="filter filter_unselected" href="" onclick="setFilter(2); return false;">friends</a>
@@ -657,7 +919,7 @@ function addDataEntry() {
              <table class="rounded_table" style="table-layout: fixed; width: 100%;">
                 <tr>
                     <td style="width: 100px;">Correlation</td>
-                    <td style="width: 100%"><span id="experiment_regression_summary"></span></td>
+                    <td style="width: 100%"><span id="experiment_analysis_summary"></span></td>
                 </tr>
                 <tr>
                     <td style="width: 100px;">Data points</td>

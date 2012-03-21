@@ -1,4 +1,4 @@
-<chart palette='3' caption='{{ exp.y_name }} with {{ exp.x_name }}' yAxisName='{{ exp.y_units }}' xAxisName='{{ exp.x_units }}' showLegend='0' showLabels='1' xAxisMaxValue='{{ xmax }}' xAxisMinValue='{{ xmin }}' >
+<chart palette='3' caption='{{ exp.y_name }} with {{ exp.x_name }}' xAxisName='{{ exp.x_name }}' yAxisName='{{ exp.y_name }}' yUnits='{{ exp.y_units }}' xUnits='{{ exp.x_units }}' showLegend='0' showLabels='1' xAxisMaxValue='{{ xmax }}' xAxisMinValue='{{ xmin }}' >
 
 
 {% if False %}
@@ -9,7 +9,7 @@
 </categories>
 {% endif %}
 
-<dataset seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
+<dataset size="{{ data|length }}" seriesName='data' color='0372AB' plotBorderThickness='0' showPlotBorder='1' anchorSides='3'>
 {% for datapoint in data %}
 	<set id="{{ forloop.counter }}" x="{{ datapoint.x }}" y="{{ datapoint.y }}" comment="{{ datapoint.comments }}" tooltext="{{ datapoint.comments }} ({{ datapoint.x }}, {{ datapoint.y }})"/>
 {% endfor %}
@@ -30,23 +30,41 @@
 
 {% if regression %}
 	<xmin>{{ xmin }}</xmin>
-	<ymin>{{ ymin }}</ymin>
-	<xmax>{{ xmax }}</xmax>
+    <xmax>{{ xmax }}</xmax>
+	
+    <ymin>{{ ymin }}</ymin>
 	<ymax>{{ ymax }}</ymax>
     
 	<regression>
-		{{ regression.summary }}
+        <summary>{{ regression.summary }}</summary>
+        {% if timefold %}
+            <timefold period="{{ timefold }}" />
+        {% endif %}
 	</regression>
     
     <parametric_curve>
-        <t_count>1</t_count>
-        <x_func>function(t) { return ({{ xmax }} - {{ xmin }})*t + {{ xmin }}; }</x_func>
-        <y_func>function(t) { return {{ regression.intercept }} + {{ regression.slope }} * (({{ xmax }} - {{ xmin }})*t + {{ xmin }}); }</y_func>
+        <t_count>{{ regression.t_count }}</t_count>
+        <x_func>{{ regression.x_func }}</x_func>
+        <y_func>{{ regression.y_func }}</y_func>
     </parametric_curve>
 {% endif %}
 
 {% if onefactor %}
+    <ymin>{{ xmin }}</ymin>
+    <ymax>{{ xmax }}</ymax>
+	
     <onefactor>
+        <summary> 
+            {{ onefactor.summary }}
+            {% for x1, xOpt in x_mapping.items %}
+                {% for x2, xMean, xEffect in x_mean_effect %}
+                    {% if x1 == x2 %}
+                        {{ xOpt }} (mean = {{ xMean|floatformat:2 }}, effect = {{ xEffect|floatformat:2 }})
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </summary>
+        
         <x_mapping>
             {% for x, xOpt in x_mapping.items %}
                 <mapping from="{{ x }}" to="{{ xOpt }}" />
@@ -63,6 +81,8 @@
 
 {% if discrete %}
     <discrete>
+        <summary>{{ discrete.summary }}</summary>
+        
         <x_mapping>
             {% for x, xOpt in x_mapping.items %}
                 <mapping from="{{ x }}" to="{{ xOpt }}" />

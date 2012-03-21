@@ -1,26 +1,98 @@
-from stats import linregress
-from main.statistics.common import Regression
+import math
 
+from main.statistics.common import Regression
+from main.statistics.f_table import f_table_value
+
+# Linear regression model
 class LinearRegression(Regression):
-	slope = 0.0
-	intercept = 0.0
-	ttProb = 0.0
-	r = 0.0
-	points = 0
-	
-	def regress(self, x, y):
-		self.points = len(x)
-		if len(x) >= 2:
-			self.slope, self.intercept, self.r, self.ttProb, sterr = linregress(x, y)
-		
-	def summary(self):
-		if self.points == 0 :
-			return "No Data Available"
-		elif self.points < 2:
-			return "Insufficient Data Available"
-		else:
-			likely = "may"
-			if (self.r < 0.2):
-				likely = "is unlikely to"
-			return "The data %(likely)s be linearly related (r=%(r).2f). y =  %(slope).2fx + %(intercept).2f" % \
-				{"slope": self.slope, "intercept": self.intercept, "p": self.ttProb, "r": self.r, "likely": likely}
+    b_1 = 0.0
+    b_0 = 0.0
+    r_2 = 0.0
+    points = 0
+    xmin = 0.0
+    xmax = 0.0
+    summaryText = "Insufficient Data Available"
+    
+    def setRegressionFormula(self):
+        self.t_count = 1
+        x_expr = "(%f - %f)*t + %f" % (self.xmax, self.xmin, self.xmin);
+        self.x_func = "function(t) { return %s; }" % x_expr
+        self.y_func = "function(t) { return (%f)*(%s) + (%f); }" % (self.b_1, x_expr, self.b_0)
+        pass
+    
+    def regress(self, x, y):
+        self.points = len(x)
+        if len(x) < 2:
+            return;
+        
+        self.xmin = min(x)
+        self.xmax = max(x)
+        
+        #1. Compute the regression coefficients
+        n = self.points
+        x_mean = 0.0
+        y_mean = 0.0
+        sum_xy = 0.0
+        sum_x_2 = 0.0
+        for i in range(0, self.points):
+            sum_xy += x[i] * y[i]
+            sum_x_2 += x[i]*x[i]
+            y_mean += y[i]
+            x_mean += x[i]
+        y_mean = y_mean / float(len(y))
+        x_mean = x_mean / float(len(x))
+        
+        self.b_1 = (sum_xy - x_mean*y_mean)/(sum_x_2 - n*x_mean)
+        self.b_0 = y_mean - self.b_1 * x_mean
+        self.setRegressionFormula()
+        
+        # Now, compute SSR, SSE, fo the F-test ANOVA
+        SSE = 0.0
+        SSR = 0.0
+        n   = len(x) # number of observations
+        p   = 1      # number of predictor variables
+        
+        for i in range(0, len(x)):
+            y_predict = self.b_1 * x[i] + self.b_0
+            SSE += (y_predict - y[i])*(y_predict - y[i])
+            SSR += (y_predict - y_mean)*(y_predict - y_mean)
+        pass
+        
+        #Now, r squared = SSR/(SSR + SSE)
+        
+        self.r_2 = SSR/(SSR+SSE)
+        
+        #Perform an f-test
+        MSM = SSR / (1)
+        MSE = SSE / (n - 2)
+        self.f_value = MSM/MSE
+        self.f_goal  = f_table_value(1, n - 2)
+        
+        if self.f_value > 10 * self.f_goal:
+            self.veryStrongSignificance()
+        elif self.f_value > self.f_goal:
+            self.strongSignificance()
+        else:
+            self.weakSignificance()
+        pass
+    
+    def formatSummaryText(self, keyword, oper):
+        self.summaryText = "The data %s be related by a linear relationsip\
+         (R=%.2f). y =  %.2fx %s. F-test: %.2f %s %.2f.\
+         " % (keyword, math.sqrt(self.r_2), self.b_1, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
+    
+    def strongSignificance(self):
+        self.formatSummaryText("is likely to", ">")
+        pass
+        
+    def veryStrongSignificance(self):
+        self.formatSummaryText("is highly related to", ">")
+        pass
+    
+    def weakSignificance(self):
+        self.formatSummaryText("is unlikely to be related to", "<")
+        pass
+    
+    def summary(self):
+        return self.summaryText
+    
