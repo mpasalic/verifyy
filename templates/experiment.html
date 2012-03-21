@@ -323,6 +323,16 @@ function getFormatterFunc(timefold, maxdelta) {
     }
 }
 
+function formatForServerInUTCString(dateObj) {
+    return dateObj.getUTCFullYear() 
+    + "-" + padZero(dateObj.getUTCMonth()) 
+    + "-" + padZero(dateObj.getUTCDate()) 
+    + " " + padZero(dateObj.getUTCHours()) 
+    + ":" + padZero(dateObj.getUTCMinutes()) 
+    + ":" + padZero(dateObj.getUTCSeconds()) 
+    + " UTC";
+}
+
 function drawChart(xmldata) {
     //0. Prepare for 'unfolding' time series data: create an appropriate function
     var folding_kind = xmldata.getElementsByTagName("timefold");
@@ -676,7 +686,7 @@ function drawUserTable(xmldata) {
         var xMin = parseFloat(xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue);
         var xMax = parseFloat(xmldata.getElementsByTagName("xmax")[0].childNodes[0].nodeValue);
         var timefold = xmldata.getElementsByTagName("timefold")[0].getAttribute("period");
-        var xTimeFmtFunc = getDateToStringFunc(timefold, xMax-xMin);
+        var xTimeFmtFunc = getFormatterFunc(timefold, xMax-xMin);
     {% endif %}
     
 	data.addRows(dataElements.length + 1);
@@ -724,6 +734,18 @@ function addDataEntry() {
 	var x = document.getElementById("x_entry").value;
 	var y = document.getElementById("y_entry").value;
 	var comment = document.getElementById("comment_entry").value;
+    
+    // We need to format the time to a specific string format before
+    // sending it over to our server
+    {% if exp.x_type == 't' %}
+        x = Date.parse(x);
+        if (isNaN(x)) { 
+            x = document.getElementById("x_entry").backup;
+            x = Date.parse(x);
+        }
+        x = new Date(x);
+        x = formatForServerInUTCString(x);
+    {% endif %}
     
     disableButton(document.getElementById("add_entry_button"));
 	
@@ -787,7 +809,37 @@ function addDataEntry() {
                     {% endfor %}
                 </select>
         {% else %}
-            <input id="x_entry_prototype" type="text" />
+        
+            {% if exp.x_type == 't' %}
+                <script type="text/javascript">
+                    function fixBrokenTime(what) {
+                        var date = null;
+                        try {
+                            date = Date.parse(what.value);
+                        } catch (e) {}
+                        if (isNaN(date)) {
+                            //try to restore the input
+                            if (typeof what.backup != 'undefined') {
+                                what.value = what.backup;
+                                return;
+                            } else {
+                                date = new Date();
+                                what.value = date.toString();
+                                what.backup = what.value;
+                            }
+                        } else {
+                            what.backup = new Date(date).toLocaleString();
+                        }
+                    };
+                    
+                </script>
+                <input id="x_entry_prototype" onfocus="fixBrokenTime(this)" onblur="fixBrokenTime(this)" type="text" />
+            {% else %}
+                <input id="x_entry_prototype" type="text" />
+
+            {% endif  %}
+                        
+            
         {% endif %}
         </div>
         
