@@ -15,7 +15,18 @@
 <script type="text/javascript" src="static/Charts/excanvas.js"></script>
 <![endif]-->
 <script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
-
+<style type="text/css">
+.inputtxt {
+    width: 96%;
+    padding-right: 30;
+    padding-left: 10;
+}
+.inputselect {
+    width: 96%;
+    padding-right: 30;
+    padding-left: 10;
+}
+</style>
 <script language="javascript">
 function vote(val) {
 		
@@ -706,7 +717,7 @@ function drawUserTable(xmldata) {
     var xinputCpy = dojo.clone( dojo.byId('x_entry_prototype') );
     var yinputCpy = dojo.clone( dojo.byId('y_entry_prototype') );
     xinputCpy.id = 'x_entry';
-    yinputCpy.id = 'y_entry';    
+    yinputCpy.id = 'y_entry';
     var xinputWrap = document.createElement("div");
     var yinputWrap = document.createElement("div");
     dojo.place(xinputCpy, xinputWrap);
@@ -714,7 +725,7 @@ function drawUserTable(xmldata) {
     
 	data.setCell(dataElements.length, 0, xinputWrap.innerHTML)
 	data.setCell(dataElements.length, 1, yinputWrap.innerHTML)
-	data.setCell(dataElements.length, 2, "<input id=\"comment_entry\" type=\"text\" />")
+	data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />")
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
 	table.draw(data, {showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
@@ -803,7 +814,7 @@ function addDataEntry() {
         <!-- a wrapper for x_choices input controls -->
         <div>
         {% if x_choices != None %}
-                <select id="x_entry_prototype" name="x_entry">
+                <select id="x_entry_prototype" class="inputselect" name="x_entry">
                     {%  for choice in x_choices %}
                         <option value="{{choice.order}}">{{ choice.option }}</option>
                     {% endfor %}
@@ -833,9 +844,9 @@ function addDataEntry() {
                     };
                     
                 </script>
-                <input id="x_entry_prototype" onfocus="fixBrokenTime(this)" onblur="fixBrokenTime(this)" type="text" />
+                <input id="x_entry_prototype" class="inputtxt" onfocus="fixBrokenTime(this)" onblur="fixBrokenTime(this)" type="text" />
             {% else %}
-                <input id="x_entry_prototype" type="text" />
+                <input id="x_entry_prototype" class="inputtxt" type="text" />
 
             {% endif  %}
                         
@@ -846,13 +857,13 @@ function addDataEntry() {
         <!-- a wrapper for y_choices input controls -->
         <div>
         {% if y_choices != None %}
-                <select id="y_entry_prototype" name="y_entry">
+                <select id="y_entry_prototype" class="inputselect" name="y_entry">
                     {%  for choice in y_choices %}
                         <option value="{{choice.order}}">{{ choice.option }}</option>
                     {% endfor %}
                 </select>
         {% else %}
-            <input id="y_entry_prototype" type="text" />
+            <input id="y_entry_prototype" class="inputtxt" type="text" />
         {% endif %}
         </div>
 
