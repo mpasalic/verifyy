@@ -728,7 +728,10 @@ function drawUserTable(xmldata) {
 	data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />")
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
-	table.draw(data, {showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
+	var cssClassNames = {headerRow: 'data_table_header_row', tableRow: 'data_table_row',
+						 selectedTableRow : 'data_table_selected_row', tableCell: 'data_table_cell',
+						 headerCell: 'data_table_header_cell' };
+	table.draw(data, {cssClassNames: cssClassNames, showRowNumber: false, page: 'enable', pageSize: 5, startPage:(Math.ceil((dataElements.length+1)/5) - 1) , allowHtml:true });
 }
 
 function disableButton(button) {
@@ -886,46 +889,6 @@ function addDataEntry() {
         </div>
     
         <div class="box_header">experiment</div>
-        <!--
-        <div id="addthis" style="float: right; width: 140px">
-        <div class="addthis_toolbox addthis_default_style ">
-        <a class="addthis_button_preferred_1"></a>
-        <a class="addthis_button_preferred_2"></a>
-        <a class="addthis_button_preferred_3"></a>
-        <a class="addthis_button_preferred_4"></a>
-        <a class="addthis_button_compact"></a>
-        <a class="addthis_counter addthis_bubble_style"></a>
-        </div>
-        <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=xa-4e395cd66332e336"></script>
-        </div>--->
-        
-        <!--
-        <div class="" style="float: left;">
-            <div class="">
-                <div style="float: left; margin-left: 5px;">
-                    <span class="experiment_number">{{ exp.votes }}</span>
-                    <div class="experiment_number_desc">votes</div>
-                </div>
-                <div style="float: left;">
-                    <div style="position:relative; left: 3px; top: 5px;"><a href="" onclick="vote(true); return false;"><img src="/static/images/uparrow.png" /></a></div>
-                    <div style="position:relative; left: 3px; top: 13px;"><a href="" onclick="vote(false); return false;"><img src="/static/images/downarrow.png" /></a></div>
-                </div>
-            </div>
-            
-                <div style="text-align: left; margin-top: 10px; margin-left: 5px;">
-        {% if subscription %}
-                <a href="/unjoin/{{exp.pk}}/">leave</a><br />
-        {% else %}
-                <a href="/join/{{exp.pk}}/">join</a><br />
-        {% endif %}
-                <a href="/report/{{exp.pk}}/">report</a><br />
-        {% if exp.user == request.user or request.user.is_superuser %}
-                <a href="/edit/{{exp.pk}}/">edit</a><br />
-        {% endif %}
-            </div>
-            
-        </div>
-        -->
     
         <div class="rounded_small_box experiment_box centered_box" style="width: 650px;">
             <table class="rounded_table" style="table-layout: fixed; width: 100%;">
@@ -956,6 +919,14 @@ function addDataEntry() {
                         <!-- <span style="font-size: 10px;">description</span><br /> -->
                         {{ exp.description }}
                     </td>
+                </tr>
+                <tr>
+                    <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">owner</td>
+                    <td colspan="2"><a href="/user/{{ exp.user }}/">{{ exp.user }}</a></td>
+                </tr>
+                <tr>
+                    <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">created</td>
+                    <td colspan="2">{{ exp.created }}</td>
                 </tr>
             </table>
         </div>
