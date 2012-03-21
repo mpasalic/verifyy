@@ -8,15 +8,17 @@
 	<div class="box_header">login</div>
 	<div style="margin-top: 20px;">
 		<form action="/login" method="post">
-			<div style="float:left">
-				Username: <br />
-				Password:
-			</div>
-			<div style="margin-left:4px; float:left">
-				<input name="username" type="text" /><br />
-				<input name="password" type="password" />
-			</div>
-			<div style="clear:both; height:8px;"></div>
+			<table>
+				<tr>
+					<td>Username:</td>
+					<td><input name="username" type="text" /></td>
+				</tr>
+				<tr>
+					<td>Password:</td>
+					<td><input name="password" type="password" /></td>
+				</tr>
+			</table>
+			<div style="height:8px;"></div>
 			<input value="login" type="submit" />
 		</form>
 		<br>
