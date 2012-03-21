@@ -34,7 +34,28 @@ Joined on {{ user.date_joined }}
 
 <div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
 <div class="box_header">data points submitted</div>
+{% if request.user.username == user.username %}
 {% include 'data.html' %}
+{% else %}
+<div style="clear: both; height: 5px;"></div>
+<div class="experiment_listing_dividor" style="clear: both; margin: 0px;"></div>
+<div style="clear: both; height: 5px;"></div>
+
+<div class="experiment_listing">
+    <div class="experiment_listing_details">
+        <div class="experiment_listing_vote" style="float: left;">
+            {{ data|length }} 
+        </div>
+    </div>
+    <div class="experiment_listing_summary" style="float: left; max-width: 650px;">
+        <div class="experiment_listing_name"><span class="experiment_listing_y_name">Data entries in all experiments.</span></div>
+    </div>
+</div>
+<div style="clear: both; height: 5px;"></div>
+<div class="experiment_listing_dividor" style="clear: both; margin: 0px;"></div>
+<div style="clear: both; height: 5px;"></div>
+
+{% endif %}
 </div>
 
 {% endblock %}
