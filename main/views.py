@@ -7,7 +7,7 @@ from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
 from main.statistics.poly_2nd import Poly2OrderRegression
 from main.statistics.one_factor import OneFactorAnalysis
-from main.statistics.bayessian import SimpleBayessianAnalysis
+from main.statistics.chi_analysis import ChiSquareTest
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -248,7 +248,7 @@ def data(request, exp_id):
     #
     #   rr - real to real data, charts & regression analysis
     #   cr - choice to real - perform one-factor experiment analysis, draw candlestick charts
-    #   cc - choice to choice - perform Bayesian analysis, draw column charts
+    #   cc - choice to choice - perform ChiSquareTest analysis, draw column charts
     #   rc - FORBIDDEN, always should have X (factor) as a discrete variable in this case
     #   *t - FORBIDDEN, it does not make sense to analyze TIME as the dependent variable
     
@@ -304,7 +304,7 @@ def data(request, exp_id):
                 yoptsDataMap[yopt.order] = yopt.option
             renderparams['y_mapping'] = yoptsDataMap
             
-            analysis = SimpleBayessianAnalysis(xoptsDataForm, yoptsDataForm)
+            analysis = ChiSquareTest(xoptsDataForm, yoptsDataForm)
             kind = DISCRETE_OPT_KIND
     #endif 
     

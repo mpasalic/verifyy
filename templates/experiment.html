@@ -159,7 +159,9 @@ function drawColumnChart(xmldata) {
         ]);
     }
     
-    var options = {};
+    var options = {
+        vAxis: {baseline: 0}
+    };
     var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
     chart.draw(data, options);
 }

@@ -10,6 +10,7 @@ from main.statistics.common import Regression
 from main.statistics.gauss import ge_solve
 from main.statistics.f_table import f_table_value
 
+POSITIVE_ZERO = 0.000000001
 
 class Poly2OrderRegression(Regression):
     # kN corresponds to kN * x^N term
@@ -98,7 +99,12 @@ class Poly2OrderRegression(Regression):
         Y = [y_0, y_1, y_2]
         
         # Solve for the model coefficients using Gaussian Elemination
-        X = ge_solve(M, Y)
+        try :
+            X = ge_solve(M, Y)
+        except Exception as e:
+            # This means Matrix was not of full rank (degenerate points)
+            # Enforce waiting for more data
+            return
         
         # Output regression coefficients
         self.k2 = X[0]
@@ -121,13 +127,18 @@ class Poly2OrderRegression(Regression):
         pass
         
         #Now, r squared = SSR/(SSR + SSE)
+        if (abs(SSE) < POSITIVE_ZERO):
+            # This is a perfect fit model
+            self.r_2 = 1
+            self.f_value  = 0.1+10*f_table_value(1, n - 2)
+        else:
+            self.r_2 = SSR/(SSR+SSE)
         
-        self.r_2 = SSR/(SSR+SSE)
+            #Perform an f-test
+            MSM = SSR / (1)
+            MSE = SSE / (n - 2)
+            self.f_value = MSM/MSE
         
-        #Perform an f-test
-        MSM = SSR / (1)
-        MSE = SSE / (n - 2)
-        self.f_value = MSM/MSE
         self.f_goal  = f_table_value(1, n - 2)
         
         if self.f_value > 10 * self.f_goal:
