@@ -4,14 +4,24 @@
 
 {% block content %}
 
-<div style="text-align: center; margin-top: 20px;">
-    <form action="/login" method="post">
-        Username: <input name="username" type="text" /><br />
-        Password: <input name="password" type="password" /><br />
-        <input value="login" type="submit" />
-    </form>
-    <br>
-<a href="/register">Create an account</a>
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px;">
+	<div class="box_header">login</div>
+	<div style="margin-top: 20px;">
+		<form action="/login" method="post">
+			<div style="float:left">
+				Username:<br />
+				Password:
+			</div>
+			<div style="margin-left:4px; float:left">
+				<input name="username" type="text" /><br />
+				<input name="password" type="password" />
+			</div>
+			<div style="clear:both; height:8px;"></div>
+			<input value="login" type="submit" />
+		</form>
+		<br>
+	<a href="/register">Create an account</a>
+	</div>
 </div>
 
  {% endblock %}
