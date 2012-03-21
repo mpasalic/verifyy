@@ -16,6 +16,12 @@ from main.statistics.f_table import f_table_value
 #   x data is whole numbers representing a finite collection of labels
 #   y data is real numbers
 class OneFactorAnalysis(Analysis):
+    ymin = 0.0
+    ymax = 0.0
+    x_mean_effect = []
+    alphas = {}
+    summaryText = "Insufficient Data Available"
+    
     def __init__(self, classes):
         super(OneFactorAnalysis, self).__init__()
         # Intialize a table of level to points for that level
@@ -49,7 +55,9 @@ class OneFactorAnalysis(Analysis):
         # add the real value to the correct bin
         for datum in data:
             self.levels[datum.x].append(datum.y)
-
+            self.ymax = self.ymax if datum.y < self.ymax else datum.y
+            self.ymin = self.ymin if datum.y > self.ymin else datum.y
+            
         #TODO: Prune away empty levels
         levelsToPrune = filter(lambda lvl: len(self.levels[lvl]) == 0, self.levels)
         for lvlDel in levelsToPrune:
@@ -69,7 +77,7 @@ class OneFactorAnalysis(Analysis):
             total += weights[level]
         for level in self.levels:
             weights[level] = float(weights[level]) / total
-            mu = weights[level] * means[level]
+            mu += weights[level] * means[level]
         
         self.means = means
         self.find1StdDevIntervals()
@@ -82,8 +90,8 @@ class OneFactorAnalysis(Analysis):
             self.means = means
             alphas = {}
             for level in self.levels:
-              alphas[level] = means[level] - mu
-              
+                alphas[level] = means[level] - mu
+            
             # Next, find SSA, SSE
             SSA = 0
             SSE = 0
@@ -106,15 +114,36 @@ class OneFactorAnalysis(Analysis):
             r = int(round(r))
             MSA = SSA / (a - 1)
             MSE = SSE / (a * (r - 1))
-            F_value = MSA / MSE
-            F_cmp = f_table_value(a-1, a*(r-1))
-            if (F_value > F_cmp):
-                # THIS IS THE CASE OF SIGNIFICANT RESULTS!
-                pass
+            self.f_value = MSA / MSE
+            self.f_goal = f_table_value(a-1, a*(r-1))
+            self.alphas = alphas
+            
+            self.x_mean_effect = map(lambda li: [li, self.means[li], self.alphas[li]], self.levels)
+            
+            if (self.f_value > 10 * self.f_goal):
+                self.veryStrongSignificance()
+            elif (self.f_value > self.f_goal):
+                self.strongSignificance()
             else:
-                # THIS MEANS OUR EXPERIMENT SHOWS NO CORRELATION
-                pass
-            # Now, perform the tests, etc
+                self.weakSignificance()
+            pass
+    
+    def formatSummaryText(self, keyword, oper):
+        self.summaryText = "The data %s the predictor. \
+        F-test: %.2f %s %.2f.\
+         " % (keyword, self.f_value, oper, self.f_goal)
+    
+    def strongSignificance(self):
+        self.formatSummaryText("is likely to be realated to", ">")
+        pass
+        
+    def veryStrongSignificance(self):
+        self.formatSummaryText("is highly related to", ">")
+        pass
+    
+    def weakSignificance(self):
+        self.formatSummaryText("is unlikely to be related to", "<")
+        pass
     
     def summary(self):
-        return "TODO: Summany @ OneFactorAnalysis"
+        return self.summaryText

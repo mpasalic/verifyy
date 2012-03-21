@@ -1,12 +1,14 @@
 # Create your views here.
 
 from main.models import *
-from main.conversion import parseTypeOrError
+from main.conversion import parseTypeOrError, convertTimeByFolding, TIME_FOLDING
 
 from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
+from main.statistics.poly_2nd import Poly2OrderRegression
 from main.statistics.one_factor import OneFactorAnalysis
-from main.statistics.bayessian import SimpleBayessianAnalysis
+from main.statistics.b_spline_regression import BSplineRegression
+from main.statistics.chi_analysis import ChiSquareTest
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -180,7 +182,7 @@ def submit(request, exp_id):
         yraw = request.POST['y'];
         x_enum = None
         y_enum = None
-        
+           
         # See what kind of experiment are we doing:
         
         if exp.x_type == 'c':
@@ -198,14 +200,14 @@ def submit(request, exp_id):
         try:
             x_val = parseTypeOrError(xraw, exp.x_type, x_enum)
             y_val = parseTypeOrError(yraw, exp.y_type, y_enum)
-            
             data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
             data.save()
-        
-        except ValueError:
+        except ValueError as err:
+            #return render_to_response('debugger_response.xml', {'debug': {}})
             return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
-        
-    return redirect("/view/%d/" % (exp.id));
+    
+    #return render_to_response('debugger_response.xml', {'debug': {}})
+    return redirect("/view/%d/" % int(exp_id));
 	
 def new_experiment(request):
     return render_to_response('new_experiment.html', {'request': request})
@@ -247,11 +249,15 @@ def data(request, exp_id):
     #
     #   rr - real to real data, charts & regression analysis
     #   cr - choice to real - perform one-factor experiment analysis, draw candlestick charts
-    #   cc - choice to choice - perform Bayesian analysis, draw column charts
+    #   cc - choice to choice - perform ChiSquareTest analysis, draw column charts
     #   rc - FORBIDDEN, always should have X (factor) as a discrete variable in this case
     #   *t - FORBIDDEN, it does not make sense to analyze TIME as the dependent variable
     
     data = get_data(request, exp_id)
+    
+    #TODO: add a conditional switch on which folding to use
+    time_fold = TIME_FOLDING.WEEKLY #WEEKLY
+    
     analysis = Analysis()
     renderparams = {
         'exp': exp, 
@@ -269,8 +275,13 @@ def data(request, exp_id):
     
     if exp.x_type != 'c':
         if exp.y_type != 'c':
+            if exp.x_type == 't':
+                convertTimeByFolding(data, time_fold)
+                renderparams['timefold'] = TIME_FOLDING().strValueOf(time_fold)
             kind = REGRESSION_KIND
             analysis = LinearRegression()
+            #analysis = Poly2OrderRegression()
+            #analysis = BSplineRegression()            
         else:
             raise KeyError("This kind of experiment should not exist!")
     else:
@@ -294,24 +305,24 @@ def data(request, exp_id):
                 yoptsDataMap[yopt.order] = yopt.option
             renderparams['y_mapping'] = yoptsDataMap
             
-            analysis = SimpleBayessianAnalysis(xoptsDataForm, yoptsDataForm)
+            analysis = ChiSquareTest(xoptsDataForm, yoptsDataForm)
             kind = DISCRETE_OPT_KIND
     #endif 
     
-    try:
-        analysis.analyse(data)
-        
-        if kind == REGRESSION_KIND:
-            renderparams['regression'] = analysis
-        elif kind == SINGLE_FACTOR_KIND:
-            renderparams['onefactor'] = analysis
-        elif kind == DISCRETE_OPT_KIND:
-            renderparams['discrete'] = analysis
+    #try:
+    analysis.analyse(data)
+    
+    if kind == REGRESSION_KIND:
+        renderparams['regression'] = analysis
+    elif kind == SINGLE_FACTOR_KIND:
+        renderparams['onefactor'] = analysis
+    elif kind == DISCRETE_OPT_KIND:
+        renderparams['discrete'] = analysis
             
         # TODO: Re-add ZeroDivisionError
-    except (RuntimeError, TypeError, NameError):
+    #except (RuntimeError, TypeError, NameError):
         #TODO: ALERT
-        pass
+    #    pass
     
     if kind == REGRESSION_KIND:
         # TODO: I think we shouldn't do it on our side
@@ -337,6 +348,9 @@ def data(request, exp_id):
         # Include candle parameters to draw here
         intervals = map(lambda bin: [bin] + analysis.stdDev1Intervals[bin], analysis.stdDev1Intervals)
         renderparams['x_intervals'] = intervals
+        renderparams['ymin'] = analysis.ymin
+        renderparams['ymax'] = analysis.ymax
+        renderparams['x_mean_effect'] = analysis.x_mean_effect
     elif kind == DISCRETE_OPT_KIND:
         test = analysis.table
         renderparams['tally'] = analysis.table
@@ -390,6 +404,7 @@ def create_new(request):
 def create_experiment(request):
     if not request.user.is_authenticated():
         return login(request)
+    errmsg = ["Please fill out all fields"]
     try:
         exp = Experiment()
         exp.x_name = request.POST['x']
@@ -402,32 +417,37 @@ def create_experiment(request):
         exp.user = request.user
         exp.vote = 0
         
+        def process_choices(var, vartype, errmsg):
+            if vartype != 'c':
+                return []
+            options = []
+            i = 0
+            while ('choice_%s_%d' % (var, i)) in request.POST:
+                option = ChoiceOptions()
+                option.option = request.POST[('choice_%s_%d' % (var, i))].strip()
+                if len(option.option) > 0:
+                    option.order = i
+                    option.var = var
+                    options.append(option)
+                i = i + 1
+            if len(options) < 2:
+                errmsg[0] = "You must specify at least 2 different states for %s" % var
+                raise KeyError(errmsg)
+            return options
+        
+        choicesX = process_choices('x', exp.x_type, errmsg)
+        choicesY = process_choices('y', exp.y_type, errmsg)
+        
+        # If we've made it this far, we can save everything now
         exp.save()
         
-        # TODO: in options, check for unicodoce
-        if exp.x_type == 'c':
-            i = 0
-            while ('choice_x_%d' % i) in request.POST:
-                option = ChoiceOptions()
-                option.option = request.POST[('choice_x_%d' % i)]
-                if len(tokenize(option.option)) > 0:
-                    option.order = i
-                    option.experiment = exp
-                    option.var = 'x'
-                    option.save()
-                i = i + 1
+        for option in choicesX:
+            option.experiment = exp
+            option.save()
+        for option in choicesY:
+            option.experiment = exp
+            option.save()
         
-        if exp.y_type == 'c':
-            i = 0
-            while ('choice_y_%d' % i) in request.POST:
-                option = ChoiceOptions()
-                option.option = request.POST[('choice_y_%d' % i)]
-                if len(tokenize(option.option)) > 0:
-                    option.order = i
-                    option.experiment = exp
-                    option.var = 'y'
-                    option.save()
-                i = i + 1
         def index_contents(c):
             for w in tokenize(c):
                 ind = Index()
@@ -441,7 +461,7 @@ def create_experiment(request):
                 at = get_auth_token(request)
                 put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
-        return render_to_response('new_experiment.html', { 'error_message' : "Please fill out all fields",  'request': request  })
+        return render_to_response('new_experiment.html', { 'error_message' : errmsg[0],  'request': request  })
     
     return redirect("/view/%d/" % (exp.id))
 		
