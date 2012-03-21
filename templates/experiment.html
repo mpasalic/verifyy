@@ -3,18 +3,18 @@
 {% block title %}Experiment{% endblock %}
 
 {% block extrahead %}
-<!-- TODO: GET RID OF THIS! <script language="JavaScript" src="/static/Charts/FusionCharts.js"></script> -->
 
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
-<!--[if IE]>
-<script type="text/javascript" src="static/Charts/excanvas.js"></script>
-<![endif]-->
-<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
     google.load('visualization', '1', {packages: ['corechart']});
 </script>
+
+<!--[if IE]>
+<script type="text/javascript" src="static/Charts/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
 
 <script language="javascript">
 function vote(val) {
@@ -91,29 +91,28 @@ function vote(val) {
 	document.getElementById("experiment_regression_summary").innerHTML=total.childNodes[0].nodeValue;
 }*/
 
+function loadLabelMapping(xmldata, v) {
+	var mappingNodes = xmldata.getElementsByTagName(v + '_mapping');
+	if (mappingNodes.length == 0) return {};
+	var mappingNode = mappingNodes[0];
+	var mappings = mappingNode.getElementsByTagName('mapping');
+	var mapping = {};
+	for (var i = 0; i < mappings.length; ++i) {
+        var num = mappings[i].getAttribute('from');
+        var label = mappings[i].getAttribute('to');
+        mapping[num] = label;
+    }
+	return mapping;
+}
+
 function drawColumnChart(xmldata) {
     var xMapping = {};
     var yMapping = {};
     
     //1. Load label mapping parameters
     {
-        var mappingNode = xmldata.getElementsByTagName('x_mapping')[0];
-        var mappings = mappingNode.getElementsByTagName('mapping');
-        
-        for (var i = 0; i < mappings.length; ++i) {
-            var num = mappings[i].getAttribute('from');
-            var label = mappings[i].getAttribute('to');
-            xMapping[num] = label;
-        }
-        
-        mappingNode = xmldata.getElementsByTagName('y_mapping')[0];
-        mappings = mappingNode.getElementsByTagName('mapping');
-        
-        for (var i = 0; i < mappings.length; ++i) {
-            var num = mappings[i].getAttribute('from');
-            var label = mappings[i].getAttribute('to');
-            yMapping[num] = label;
-        }
+        xMapping = loadLabelMapping(xmldata, 'x');
+		yMapping = loadLabelMapping(xmldata, 'y');
     }
     // /1. Mappings parameters loaded
     // 2. Reconstruct table
@@ -648,7 +647,6 @@ function loadUserTable() {
 		}
 	}
 
-
 	xmlhttp.open("GET",url,true);
 	xmlhttp.send();
 }
@@ -667,18 +665,12 @@ function drawUserTable(xmldata) {
     
     /* Need to be able to pull mappings of the experiment types */
     {% if exp.x_type == 'c' %}
-        var xMappings = xmldata.getElementsByTagName("x_mapping")[0].getElementsByTagName("mapping");
-        var xMaps = {};
-        for (var i = 0; i < xMappings.length; ++i) {
-            xMaps[xMappings[i].getAttribute("from")] = xMappings[i].getAttribute("to");
-        }
+        var xMapping = {};
+		xMapping = loadLabelMapping(xmldata, 'x');
     {% endif %}
     {% if exp.y_type == 'c' %}
-        var yMappings = xmldata.getElementsByTagName("y_mapping")[0].getElementsByTagName("mapping");
-        var yMaps = {};
-        for (var i = 0; i < yMappings.length; ++i) {
-            yMaps[yMappings[i].getAttribute("from")] = yMappings[i].getAttribute("to");
-        }
+        var yMapping = {};
+		yMapping = loadLabelMapping(xmldata, 'y');
     {% endif %}
     {% if exp.x_type == 't' %}
         var xMin = parseFloat(xmldata.getElementsByTagName("xmin")[0].childNodes[0].nodeValue);
@@ -693,8 +685,8 @@ function drawUserTable(xmldata) {
 		var dataElement = dataElements[i];
         var x = dataElement.getAttribute("x");
 		var y = dataElement.getAttribute("y");
-        {% if exp.x_type == 'c' %} x = xMaps[parseInt(x)]; {% endif %}
-        {% if exp.y_type == 'c' %} y = xMaps[parseInt(y)]; {% endif %}
+        {% if exp.x_type == 'c' %} x = xMapping[parseInt(x)]; {% endif %}
+        {% if exp.y_type == 'c' %} y = yMapping[parseInt(y)]; {% endif %}
         {% if exp.x_type == 't' %} x = xTimeFmtFunc(x); {% endif %}
 		data.setCell(i, 0, x);
 		data.setCell(i, 1, y);
@@ -907,7 +899,7 @@ function addDataEntry() {
    		<p class="clear"></p>
         <div class="box_header">data</div>
     
-        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <!--<script type="text/javascript" src="https://www.google.com/jsapi"></script>-->
         <script type="text/javascript">
           google.load("visualization", "1", {packages:["corechart"]});
           google.setOnLoadCallback(loadDefaultChart);

@@ -3,7 +3,13 @@
         <a href="/">HOME</a>  
     </span> 
     <span class="menu_item">
-        <a href="/createnew">CREATE EXPERIMENT</a> 
+        <a 
+		{% if request.user.is_authenticated %}
+			href="/createnew"
+		{% else %}
+			href="/login"
+		{% endif %}
+		>CREATE EXPERIMENT</a> 
     </span> 
     <span class="menu_item">
         <!-- <form action="/search" method="get">

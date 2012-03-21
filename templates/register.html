@@ -1,14 +1,33 @@
 {% extends 'base.html' %}
 
+{% block search %}{% endblock %}
+
 {% block content %}
-<div style="text-align: center">
-    <form action="/register" method="post">
-        Username: <input name="username" type="text" /><br />
-        Password: <input name="password" type="password" /><br />
-        Confirm Password: <input name="password2" type="password" /><br />
-        Email (optional): <input name="email" type="text" /><br />
-        <input value="create account" type="submit" />
-    </form>
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px;">
+	<div class="box_header">register</div>
+	<div style="margin-top: 20px;">
+		<form action="/register" method="post">
+			<table style="margin-bottom: 8px">
+				<tr>
+					<td>Username:</td>
+					<td><input name="username" type="text" /></td>
+				</tr>
+				<tr>
+					<td>Password:</td>
+					<td><input name="password" type="password" /></td>
+				</tr>
+				<tr>
+					<td>Confirm Password:</td>
+					<td><input name="password2" type="password" /></td>
+				</tr>
+				<tr>
+					<td>Email (optional):</td>
+					<td><input name="email" type="text" /></td>
+				</tr>
+			</table>
+			<input value="create account" type="submit" />
+		</form>
+	</div>
 
 </div>
 

@@ -3,9 +3,11 @@ from django.contrib.auth.models import User
 from datetime import datetime 
 from django.db.models.fields.related import ForeignKey
 
+# Note that these strings are visible in the UI.
+# Also, don't change the chars; they are hardcoded a lot.
 DATA_TYPES = (
     ('t', 'Date and Time'),
-	('r', 'Real Number'),
+	('r', 'Number'),
 	('c', 'Choice')
 )
 
