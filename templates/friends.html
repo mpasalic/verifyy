@@ -12,20 +12,20 @@
 
 {% block content %}
 
-
-<div style="min-height: 20px;">
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px;">
+	<div class="box_header">add a friend</div>
+	<form action="/friends/" method="get">
+		<input type="text" value="" name="add" />
+		<input type="submit" value="Add Friend" />
+	</form>
 </div>
-<h1>Friends</h1>
-<h2>Add friend</h2>
-<form action="/friends/" method="get">
-	<input type="text" value="" name="add" />
-    <input type="submit" value="Add Friend" />
-</form>
-<h2>List</h2>
 
-{% for friend in list %}
-<a href="/user/{{friend.friend.username}}">{{friend.friend.username}}</a> (<a href="/friends/?remove={{friend.friend.username}}">delete</a>) {% empty %}
-Sorry! You have no friends yet :(
-{% endfor %}
+<div class="rounded_big_box centered_box" style="background-color: #FFF; width: 740px; margin-top: 8px;">
+	<div class="box_header">friends</div>
+	{% for friend in list %}
+	<a href="/user/{{friend.friend.username}}">{{friend.friend.username}}</a> (<a href="/friends/?remove={{friend.friend.username}}">delete</a>) {% empty %}
+	Sorry! You have no friends yet :(
+	{% endfor %}
+</div>
 
 {% endblock %}
