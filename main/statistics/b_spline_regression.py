@@ -66,6 +66,10 @@ class BSplineRegression(Regression):
         
         clusters = params['clusters']
         
+        if (len(clusters) < 3):
+            # This dataset is too noisy/degenerate: we don't have enough control points
+            return
+        
         curve = b_spline(params)
         
         self.setRegressionFormula(curve)

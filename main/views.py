@@ -7,6 +7,7 @@ from main.statistics.common import Analysis, Regression
 from main.statistics.linear_regression import LinearRegression
 from main.statistics.poly_2nd import Poly2OrderRegression
 from main.statistics.one_factor import OneFactorAnalysis
+from main.statistics.b_spline_regression import BSplineRegression
 from main.statistics.chi_analysis import ChiSquareTest
 
 from django.shortcuts import get_object_or_404
@@ -280,7 +281,7 @@ def data(request, exp_id):
             kind = REGRESSION_KIND
             analysis = LinearRegression()
             #analysis = Poly2OrderRegression()
-            
+            #analysis = BSplineRegression()            
         else:
             raise KeyError("This kind of experiment should not exist!")
     else:
