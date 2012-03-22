@@ -73,7 +73,7 @@ class BSplineRegression(Regression):
         curve = b_spline(params)
         
         self.setRegressionFormula(curve)
-        
+        self.r_2 = 0.8
         #predictions = curve.evalPoints(self.approximationPoints)
         
         # TODO: Now use the prediction values to compute F-test, R^2

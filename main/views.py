@@ -1,10 +1,10 @@
 # Create your views here.
 
 from main.models import *
-from main.conversion import parseTypeOrError, convertTimeByFolding, TIME_FOLDING
+from main.conversion import parseTypeOrError, convertTimeByFolding, TIME_FOLDING, REGRESSION_PREFERENCE
 from main.searchapi import addToIndex, search1
 
-from main.statistics.common import Analysis, Regression
+from main.statistics.common import Analysis, Regression, RegressionPicker
 from main.statistics.linear_regression import LinearRegression
 from main.statistics.poly_2nd import Poly2OrderRegression
 from main.statistics.one_factor import OneFactorAnalysis
@@ -215,7 +215,7 @@ def get_data(request, exp_id):
 
 	if 'filter' in request.GET:
 		filter = request.GET['filter']
-
+        
 		if filter == '1':
 			return Data.objects.all().filter( experiment=exp, user=request.user )
 		elif filter == '2':
@@ -253,9 +253,16 @@ def data(request, exp_id):
     
     data = get_data(request, exp_id)
     
-    #TODO: add a conditional switch on which folding to use
-    time_fold = TIME_FOLDING.WEEKLY #WEEKLY
+    time_fold = TIME_FOLDING.NO_FOLD
+    regression_type = REGRESSION_PREFERENCE.NONE
     
+    if 'time_fold' in request.GET:
+        time_fold = request.GET['time_fold']
+        time_fold = TIME_FOLDING().foldingValueOf(time_fold)
+    if 'regression_type' in request.GET:
+        regression_type = request.GET['regression_type']
+        regression_type = REGRESSION_PREFERENCE().enumValueOf(regression_type)
+        
     analysis = Analysis()
     renderparams = {
         'exp': exp, 
@@ -277,9 +284,15 @@ def data(request, exp_id):
                 convertTimeByFolding(data, time_fold)
                 renderparams['timefold'] = TIME_FOLDING().strValueOf(time_fold)
             kind = REGRESSION_KIND
-            analysis = LinearRegression()
-            #analysis = Poly2OrderRegression()
-            #analysis = BSplineRegression()            
+            regressions = {
+                REGRESSION_PREFERENCE.LINEAR: LinearRegression(), 
+                REGRESSION_PREFERENCE.SECOND_POLY:Poly2OrderRegression(), 
+                REGRESSION_PREFERENCE.B_SPLINE:BSplineRegression()
+            }
+            if (regression_type == REGRESSION_PREFERENCE.NONE):
+                analysis = RegressionPicker(map(lambda x: regressions[x], regressions))
+            else:
+                analysis = regressions[regression_type]
         else:
             raise KeyError("This kind of experiment should not exist!")
     else:
