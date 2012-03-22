@@ -78,7 +78,7 @@ appendChoice = function (div, variable, index, plusButton) {
 	var identifier = '\'' + variable + '\', ' + index + '';
 	var span = document.createElement('span');
 	span.id = getChoiceId(variable, index, 'span');
-	span.innerHTML = '<input name="choice_' + variable + '_' + index + '" id="' + getChoiceId(variable, index, 'input') + '" type="text" class="noMargin"></input>' + 
+	span.innerHTML = '<input name="choice_' + variable + '_' + index + '" id="' + getChoiceId(variable, index, 'input') + '" type="text" class="noMargin" style="margin-right: 6px"></input>' + 
 			'<span class="smallButton" id="' + getChoiceId(variable, index, 'minus') + '" onclick="choiceClick(' + identifier + ', false)"><img src="/static/images/minus-8.png"></span>' + 
 			'<span id="' + getChoiceId(variable, index, 'plus') + '" style="display:' + (plusButton ? 'inline-block' : 'none') + '"> / ' + 
 			'<span class="smallButton" onclick="choiceClick(' + identifier + ', true)"><img src="/static/images/plus-8.png"></span></span><br>';
