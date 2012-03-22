@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search query="{{ search }}">
+	{% for exp in list %}
+		<result id="{{ exp.id }}" x_name="{{ exp.x_name }}" y_name="{{ exp.y_name }}" votes="{{ exp.votes }}" />
+	{% endfor %}
+</search>
