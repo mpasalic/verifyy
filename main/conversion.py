@@ -28,6 +28,17 @@ class TIME_FOLDING:
     SECONDS_IN_HOUR = 60 * 60
     SECONDS_IN_DAY =  24 * SECONDS_IN_HOUR
     
+    def foldingValueOf(self, str):
+        lstr = str.lower()
+        if lstr == "hourly":
+            return self.HOURLY
+        elif lstr == "daily":
+            return self.DAILY
+        elif lstr == "weekly":
+            return self.WEEKLY
+        else:
+            return self.NO_FOLD
+    
     def strValueOf(self, enumVal):
         if enumVal == self.NO_FOLD:
             return "None"
@@ -38,6 +49,23 @@ class TIME_FOLDING:
         elif enumVal == self.WEEKLY:
             return "Weekly"
         raise KeyError("Not a valid TIME_FOLDING constant")
+
+class REGRESSION_PREFERENCE:
+    NONE        = 0
+    LINEAR      = 1
+    SECOND_POLY = 2
+    B_SPLINE    = 111
+    
+    def enumValueOf(self, str):
+        if lstr == "linear":
+            return self.LINEAR
+        elif lstr == "2ndorderpolynom":
+            return self.SECOND_POLY
+        elif lstr == "b_spline":
+            return self.B_SPLINE
+        else:
+            return self.NONE
+        
 
 def parseTypeOrError(val, type, mapping=None):
     if type == 'c':
