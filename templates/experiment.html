@@ -948,7 +948,7 @@ function addDataEntry() {
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
 					<td style="width: 100%">
                     {% if exp.x_type == 'c' %}
-                        One of {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                        One of: {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
                     {% else %}
                         In units of {{ exp.x_units }}
                     {% endif %}
@@ -959,7 +959,7 @@ function addDataEntry() {
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
 					<td style="width: 100%">
                     {% if exp.y_type == 'c' %}
-                        One of {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                        One of: {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
                     {% else %}
                         In units of {{ exp.y_units }}
                     {% endif %}
