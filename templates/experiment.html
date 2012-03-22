@@ -6,6 +6,7 @@
 
 <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
 
+<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
     google.load('visualization', '1', {packages: ['corechart']});
@@ -14,7 +15,7 @@
 <!--[if IE]>
 <script type="text/javascript" src="static/Charts/excanvas.js"></script>
 <![endif]-->
-<script type="text/javascript" src="http://dygraphs.com/dygraph-combined.js"></script>
+
 <style type="text/css">
 .inputtxt {
     width: 96%;
@@ -389,12 +390,12 @@ function drawChart(xmldata) {
         xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName')
     ];
     var xAxisText = 
-        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName') + ", " +
-        xmldata.getElementsByTagName('chart')[0].getAttribute('xUnits');
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xAxisName') + " (" +
+        xmldata.getElementsByTagName('chart')[0].getAttribute('xUnits') + ")";
     
     var yAxisText = 
-        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + ", " + 
-        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits');
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yAxisName') + " (" + 
+        xmldata.getElementsByTagName('chart')[0].getAttribute('yUnits') + ")";
     var chartCaption = xmldata.getElementsByTagName('chart')[0].getAttribute('caption');
     
     var orig_colors = [];
@@ -404,12 +405,16 @@ function drawChart(xmldata) {
         document.getElementById('chart_div'),
         data,
         {
+			title: "",
             labels: labels,
             drawPoints: true,
             avoidMinZero:true,
             pointSize: 4,
             highlightCircleSize: 5,
             strokeWidth: 0.0,
+			labelsDivWidth: 500,
+			labelsDivStyles: { 'text-align': 'right' },
+			
             drawCallback: function(g, is_initial) {
                 if (!is_initial) { return; }
                 var c = g.getColors();
@@ -483,7 +488,7 @@ function drawChart(xmldata) {
     pc_opts['axes']={};
     pc_opts['xlabel']=xAxisText;
     pc_opts['ylabel']=yAxisText;
-    pc_opts['title'] =chartCaption;
+    //pc_opts['title'] =chartCaption; Title is unneccasary 
     pc_opts['avoidMinZero'] = true;
     pc_opts['highlightCircleSize'] = 4;
     pc_opts['highlightSeriesOpts'] = { pointSize: 5 };
@@ -492,7 +497,7 @@ function drawChart(xmldata) {
         pc_labels.push(labels[i]);
         if (i > 0) { 
             pc_colors.push(orig_colors[i-1]);
-            var label = labels[i] + " Regression";
+            var label = labels[i] + " regression";
             pc_labels.push(label);
             var c = new RGBColor(orig_colors[i-1]);
             var cp = new RGBColor(orig_colors[i-1]); 
@@ -891,7 +896,7 @@ function addDataEntry() {
         <div class="box_header">experiment</div>
     
         <div class="rounded_small_box experiment_box centered_box" style="width: 650px;">
-            <table class="rounded_table" style="table-layout: fixed; width: 100%;">
+            <table class="rounded_table" style="table-layout: auto; width: 100%;">
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">how</td>
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
@@ -912,7 +917,7 @@ function addDataEntry() {
                     {% else %}
                         In units of {{ exp.y_units }}
                     {% endif %}
-					<td style="width: 100%">
+					</td>
                 </tr>
                 <tr>
                     <td colspan="3" style="font-size: 15px;">
@@ -920,7 +925,7 @@ function addDataEntry() {
                         {{ exp.description }}
                     </td>
                 </tr>
-                <tr>
+                <tr>		
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">owner</td>
                     <td colspan="2"><a href="/user/{{ exp.user }}/">{{ exp.user }}</a></td>
                 </tr>
@@ -938,6 +943,7 @@ function addDataEntry() {
           google.load("visualization", "1", {packages:["corechart"]});
           google.setOnLoadCallback(loadDefaultChart);
         </script>
+
         <div class="rounded_small_box centered_box" style="width: 650px; ">
             
             <div id="chart_div" style="width: 600px; height: 400px; padding: 10px;">
@@ -971,66 +977,6 @@ function addDataEntry() {
             
         </div>
         
-        <!--
-        <span style="margin-top: 0px; margin-bottom: 0px; padding-bottom:0px;"><span class="y_name">{{ exp.y_name }}</span> <span class="with" style=" ">with</span> <span class="x_name">{{ exp.x_name }}</span></h1> 
-        <span class="demphasize">created by</span> <a href="/user/{{ exp.user.username }}/">{{ exp.user.username }}</a><br />
-        {{ exp.description }} -->
-        
-        <!--
-        <div style=" padding: 10px 0px">
-            <span class="emphasize">{{ exp.y_name }}</span> measured in <span class="emphasize">{{ exp.y_units }}</span>.<br>
-            {{ exp.y_control }}<br><br>
-            
-            <span class="emphasize">{{ exp.x_name }}</span> is measured in <span class="emphasize">{{ exp.x_units }}</span>.<br>
-            {{ exp.x_control }}
-        </div> -->
-        
-        <!--
-            <p style="clear: both"></p>
-        
-            <div id="chartdiv" style="width: 740px; height: 400px"></div>
-        
-            <br />
-            <div id="regression" class="boxed" style="margin-left: auto; margin-right: auto; width: 400px;">
-                <h2>Analysis</h2>
-                <div id="regression_summary"></div>
-            </div>
-        
-            <div id="filter_selector" style="text-align: center; margin-top: 20px;">
-                <a id="filter_me" class="filter filter_unselected" href="" onclick="setfilter(1); return false;">me</a>
-                <a id="filter_friends" class="filter filter_unselected" href="" onclick="setfilter(2); return false;">friends</a>
-                <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setfilter(0); return false;">everyone</a>
-            </div>
-        
-            <script type="text/javascript">
-                var chart = new FusionCharts("/static/Charts/Scatter.swf", "ChartId", "740", "400", "0", "0");
-                
-                function setfilter(filter) {
-                    chart.setXMLUrl("/data/{{ exp.pk }}/?filter="+ filter);
-                    analysis("/data/{{ exp.pk }}/?filter="+ filter);
-                    
-                    var me = document.getElementById("filter_me");
-                    var friend = document.getElementById("filter_friends");
-                    var everyone = document.getElementById("filter_everyone");
-            
-                    me.className = "filter filter_unselected";
-                    friend.className = "filter filter_unselected";
-                    everyone.className = "filter filter_unselected";
-                    
-                                    
-                    if (filter == 0) {
-                        everyone.className = "filter filter_selected";
-                    } else if (filter == 1) {
-                        me.className = "filter filter_selected";
-                    } else if (filter == 2) {
-                        friend.className = "filter filter_selected"
-                    }
-                }
-                setfilter(0);
-                chart.render("chartdiv");
-                
-            </script>
-        -->
         <br />
         <br />
             
@@ -1047,29 +993,6 @@ function addDataEntry() {
 				</script>
                 <div id='table_div'></div>
                 
-                <!--
-                <table border="0" style="" cellspacing="0">
-                
-                {% if user_data or subscription %}
-                    <thead>
-                        <th>{{ exp.x_name }}<br />({{ exp.x_units}})</th>
-                        <th>{{ exp.y_name }}<br />({{ exp.y_units}})</th>
-                        <th>Comments</th>
-                    </thead>
-                {% endif %}
-                
-                {% if user_data %}
-                    
-                    {% for data in user_data %}
-                        <tr>
-                            <td align="center">{{ data.x }}</td>
-                            <td align="center">{{ data.y }}</td>
-                            <td align="center">{{ data.comments }}</td>
-                        </tr>
-                    {% endfor %}
-                        
-                {% endif %}
-                -->
                 {% if subscription %}
                 <input id="add_entry_button" type="submit" value="Add Entry" onclick="addDataEntry();" />
                 {% else %}
