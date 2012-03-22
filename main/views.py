@@ -496,6 +496,14 @@ def search(request):
 		found_entries = ''
 	return render_to_response('search.html', { 'search': q, 'list': found_entries, 'request': request })
 	
+def searchXml(request):
+    if 'q' in request.POST:
+        q = request.POST['q']
+        found_entries = search1(q)
+        return render_to_response('search.xml', {'search': q, 'list': found_entries}, mimetype="application/xml")
+    else:
+        return HttpResponseBadRequest('<search />')
+	
 def user(request, username):
 	user = get_object_or_404(User, username=username)
 	subs = Subscription.objects.all().filter( user=user )

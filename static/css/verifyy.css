@@ -29,6 +29,17 @@ a:active {color: #368;}
 #footer a:hover {color: #777;}
 #footer a:active {color: #777;}
 
+.search_suggest {
+    display: none;
+    border: 1px grey solid;
+    position: relative;
+    top: -1px;
+    background: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .error, .info {
 	width: 100%;
 	color: red;

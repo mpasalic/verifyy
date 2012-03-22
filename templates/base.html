@@ -7,6 +7,20 @@
 <title>VerifyY - {% block pagetitle %}{% endblock %}</title>
 <link href="/static/css/verifyy.css" rel="stylesheet" type="text/css" />
 <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js"></script>
+<script>
+getXHR = function() {
+    var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+	  	xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+	 	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+    return xmlhttp;
+};
+</script>
 {% block extrahead %}{% endblock %}
 </head>
 
@@ -17,11 +31,14 @@
 </div>
 
 {% block search %}
+<script src="/static/javascript/suggest.js"></script>
+
 <div style="width: 1000px; margin-left: auto; margin-right: auto">
     <div style="margin-top: 10px;" class="main_page_header">
         <div style="position: relative; left: 80px; top: 90px;">
-            <form action="/search" method="get">
-                <input class="search_box" name="q" id="search_bar" type="textbox" style="width: 330px; height: 22px;">
+            <form action="/search" method="get" >
+                <input class="search_box" name="q" id="search_bar" type="textbox" onkeyup="suggest();" onblur="displaySuggestions(false);" style="width: 330px; height: 22px;">
+                <div id="search_suggest" class="search_suggest" style="width: 310px;"></div>
             </form> 
         </div>
     </div>

@@ -4,7 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>VerifyY - The Pseudo-Science Social Experiment Website</title>
 <link href="/static/css/verifyy.css" rel="stylesheet" type="text/css" />
-
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6.0/dojo/dojo.xd.js"></script>
+<script src="/static/javascript/suggest.js"></script>
 </head>
 
 <body class="front_page">
@@ -13,9 +14,10 @@
     </div>
 	<div class="front_page_header">
     	<div style="position: relative; left: 200px; top: 440px;">
-           	<form action="/search" method="get">
-        		<input class="search_box" name="q" id="search_bar" type="textbox" style="width: 430px; height: 22px;">
-   		   	</form> 
+           	<form action="/search" method="get" >
+        		<input class="search_box" name="q" id="search_bar" type="textbox" onkeyup="suggest();" onblur="displaySuggestions(false);" style="width: 430px; height: 22px;">
+                <div id="search_suggest" class="search_suggest" style="width: 410px;"></div>
+   		   	</form>
         </div>
     </div>
     <div class="front_page_content">

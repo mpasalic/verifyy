@@ -29,5 +29,6 @@ urlpatterns = patterns('',
     (r'^create$', 'main.views.create_experiment'),
 	(r'^createnew$', 'main.views.create_new'),
     (r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root':  settings.STATIC_DOC_ROOT}),
+	(r'^searchxml$', 'main.views.searchXml'),
 	(r'^admin/', include(admin.site.urls)),
 )
