@@ -28,7 +28,7 @@ def authCheck(request):
     return render_to_response('auth.html', {'authed': authed, 'user': request.user} )
 
 def get_auth_token(request):
-    res = FBAuth.objects.filter(user=request.user)
+    res = FBAuthCode.objects.filter(user=request.user)
     if not res: return None
     code = res[0].code
 
@@ -38,7 +38,7 @@ def get_auth_token(request):
 def get_cached_token(request):
     authed = not isinstance(request.user,AnonymousUser)
     if not authed: return None
-    res = list(FBAuth2.objects.filter(user=request.user))
+    res = list(FBAuthToken.objects.filter(user=request.user))
     if not res: return None
     return res[-1].token
 
@@ -72,11 +72,11 @@ def msg(request):
 def index(request):
 	authed = not isinstance(request.user,AnonymousUser)
 	if 'code' in request.GET and authed:
-		fba = FBAuth(code = request.GET['code'], user = request.user)
+		fba = FBAuthCode(code = request.GET['code'], user = request.user)
 		fba.save()
 
 		at = get_auth_token(request)
-		fba = FBAuth2(token = at, user = request.user)
+		fba = FBAuthToken(token = at, user = request.user)
 		fba.save()
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]

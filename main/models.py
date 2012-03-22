@@ -41,11 +41,11 @@ class Experiment(models.Model):
 	def __unicode__(self):
 		return self.x_name + " with " + self.y_name
 
-class FBAuth(models.Model):
-	user = models.ForeignKey(User)
+class FBAuthCode(models.Model):
+	user = models.ForeignKey(User, primary_key=True)
         code = models.TextField()
-class FBAuth2(models.Model):
-	user = models.ForeignKey(User)
+class FBAuthToken(models.Model):
+	user = models.ForeignKey(User, primary_key=True)
         token = models.TextField()
 		
 class DiscussionMessage(models.Model):
