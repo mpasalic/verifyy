@@ -19,7 +19,7 @@ TIME_PARSE_FMT="%Y-%m-%d %H:%M:%S %Z"
 #
 #   NO_FOLD < HOURLY < DAILY < WEEKLY
 #
-class TIME_FOLDING:
+class TIME_FOLDING(object):
     NO_FOLD = 0
     HOURLY  = 1
     DAILY   = 2
@@ -50,13 +50,14 @@ class TIME_FOLDING:
             return "Weekly"
         raise KeyError("Not a valid TIME_FOLDING constant")
 
-class REGRESSION_PREFERENCE:
+class REGRESSION_PREFERENCE(object):
     NONE        = 0
     LINEAR      = 1
     SECOND_POLY = 2
     B_SPLINE    = 111
     
     def enumValueOf(self, str):
+        lstr = str.lower()
         if lstr == "linear":
             return self.LINEAR
         elif lstr == "2ndorderpolynom":

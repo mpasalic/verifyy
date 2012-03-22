@@ -258,7 +258,7 @@ def data(request, exp_id):
     
     if 'time_fold' in request.GET:
         time_fold = request.GET['time_fold']
-        time_fold = TIME_FOLDING().enumValueOf(time_fold)
+        time_fold = TIME_FOLDING().foldingValueOf(time_fold)
     if 'regression_type' in request.GET:
         regression_type = request.GET['regression_type']
         regression_type = REGRESSION_PREFERENCE().enumValueOf(regression_type)
