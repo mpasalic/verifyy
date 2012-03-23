@@ -29,7 +29,7 @@
         <a href="/user/{{ request.user.username }}">MY EXPERIMENTS</a> 
     </span>
     <span class="menu_item">
-        <strong>{{ request.user.username }}</strong> <a href="/logout"> (LOGOUT)</a> 
+        <strong>{{ request.user.get_profile.name }}</strong> <a href="/logout"> (LOGOUT)</a> 
     </span>
    
     {% else %} 
