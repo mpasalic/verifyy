@@ -41,6 +41,7 @@ def create_user(userName, name, password, email):
                 user.save();
 
                 UserProfile(user=user, name=name).save()
+                return True
         else:
                 return False
 
@@ -50,9 +51,10 @@ def index(request):
                 code = request.GET['code']
                 token = fb.get_token_from_code(code)
                 user = "fb_" + fb.get_profile(token)["id"]
+                password = "208phoeu092uent"
                 create_user(user, fb.get_profile(token)["name"], 
-                            "208phoeu092uent", "foo@suremail.info")
-		user = auth.authenticate(username=user, password="208phoeu092uent")
+                            password, "foo@suremail.info")
+		user = auth.authenticate(username=user, password=password)
                 auth.login(request, user)
                 fb.save_code(user, code)
                 return redirect('/');
@@ -89,8 +91,8 @@ def register(request):
 			existingUser = User.objects.filter(username = userName)
 			if not create_user(userName, 
                                            userName,
-                                           request.POST['email'], 
-                                           request.POST['password']):
+                                           request.POST['password'],
+                                           request.POST['email']):
 
 				return render_to_response('register.html', { 'error_message' : "Username is taken",  'request': request  })
 		except (KeyError):
