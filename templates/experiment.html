@@ -735,7 +735,7 @@ function drawUserTable(xmldata) {
         var xTimeFmtFunc = getFormatterFunc(timefold, xMax-xMin);
     {% endif %}
     
-	data.addRows(dataElements.length + 1);
+	data.addRows(dataElements.length + (joined ? 1 : 0));
 
 	for (var i = 0; i < dataElements.length; i++) {
 		var dataElement = dataElements[i];
@@ -758,9 +758,12 @@ function drawUserTable(xmldata) {
     dojo.place(xinputCpy, xinputWrap);
     dojo.place(yinputCpy, yinputWrap);    
     
-	data.setCell(dataElements.length, 0, xinputWrap.innerHTML)
-	data.setCell(dataElements.length, 1, yinputWrap.innerHTML)
-	data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />")
+    
+    if (joined) {
+        data.setCell(dataElements.length, 0, xinputWrap.innerHTML);
+        data.setCell(dataElements.length, 1, yinputWrap.innerHTML);
+        data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />");
+    }
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
 	var cssClassNames = {headerRow: 'data_table_header_row', tableRow: 'data_table_row',
@@ -792,8 +795,7 @@ function addDataEntry() {
             x = document.getElementById("x_entry").backup;
             x = Date.parse(x);
         }
-        x = new Date(x);
-        x = formatForServerInUTCString(x);
+        x = x / 1000;
     {% endif %}
     
     disableButton(document.getElementById("add_entry_button"));
@@ -824,6 +826,12 @@ function addDataEntry() {
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(params);
 }
+
+{% if subscription %}
+joined = true;
+{% else %}
+joined = false;
+{% endif %}
 </script>
 <style type="text/css">
 #filter_selector {
@@ -939,6 +947,13 @@ function addDataEntry() {
             </div>
         </div>
     
+        <div id="addthis" style="float: right; width: 72px">
+            <a name="fb_share" type="icon"></a> 
+            <span style="position: relative; top: 2px">
+                <g:plusone size="small" annotation="none"></g:plusone>
+            </span>
+        </div>
+    
         <div class="box_header">experiment</div>
     
         <div class="rounded_small_box experiment_box centered_box" style="width: 650px;">
@@ -973,7 +988,7 @@ function addDataEntry() {
                 </tr>
                 <tr>		
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">owner</td>
-                    <td colspan="2"><a href="/user/{{ exp.user }}/">{{ exp.user }}</a></td>
+                    <td colspan="2"><a href="/user/{{ exp.user }}/">{{ exp.user.get_profile.name }}</a></td>
                 </tr>
                 <tr>
                     <td style="width: 50px; font-size: 10px; padding: 0px; padding-left: 3px;">created</td>
@@ -1104,6 +1119,17 @@ function addDataEntry() {
 	{% endif %}	
     </div>
 </div>
+
+<script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" 
+        type="text/javascript">
+</script>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
 
 {% endblock %}
 

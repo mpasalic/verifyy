@@ -73,7 +73,18 @@ def do_cluster1(points, thresh = 0.3333, thresh2 = 1, rate=0.5):
             if minJForJ == i:
                 #if minJForIVal <= thresh * minJForJVal2ndBest:
                 #print "[DEBUG] %s : %s" % (str(clusters[i].centroid()), str(clusters[i]))
-                mergeCompetitive = (minJForIVal <= thresh * minJForJVal2ndBest)
+                #mergeCompetitive = (minJForIVal <= thresh * minJForJVal2ndBest)
+                
+                
+                # # # # GRAVI TEST
+                grav1 = float(len(clusters[i].points)*len(clusters[minJForI].points))/(math.sqrt(minJForIVal)*1)
+                grav2 = float(len(clusters[minJForI].points)*len(clusters[minJForJ].points))/(math.sqrt(minJForJVal)*1)
+                
+                mergeCompetitive = grav1 * thresh >= grav2
+                
+                # # # #GRAVI TEST
+                
+                
                 mergeGaussianCond = (len(clusters[i].points) == 1) or (minJForIVal <= thresh2 * clusters[i].stddev_xy())
                 if mergeCompetitive and mergeGaussianCond:
                     #print "MERGING [%f] %s, INFO: %f %s | %f %s" % (clusters[i].stddev_xy(), str(clusters[i]), minJForIVal, str(clusters[minJForI]), minJForJVal2ndBest, str(clusters[minJForJ2ndBest]))

@@ -17,9 +17,10 @@ class LinearRegression(Regression):
     
     def setRegressionFormula(self):
         self.t_count = 1
-        x_expr = "(%f - %f)*t + %f" % (self.xmax, self.xmin, self.xmin);
+        x_expr = "(%f)*t + %f" % (self.xmax - self.xmin, self.xmin)
+        x_shifted = "(%f)*t" % (self.xmax - self.xmin)
         self.x_func = "function(t) { return %s; }" % x_expr
-        self.y_func = "function(t) { return (%f)*(%s) + (%f); }" % (self.b_1, x_expr, self.b_0)
+        self.y_func = "function(t) { return (%f)*(%s) + (%f); }" % (self.b_1, x_shifted, self.b_0)
         pass
     
     def regress(self, x, y):
@@ -29,6 +30,10 @@ class LinearRegression(Regression):
         
         self.xmin = min(x)
         self.xmax = max(x)
+        
+        # Shift regression to start with 0
+        for i in range(0, self.points):
+            x[i] = x[i] - self.xmin
         
         #1. Compute the regression coefficients
         n = self.points
@@ -91,9 +96,11 @@ class LinearRegression(Regression):
     
     def formatSummaryText(self, keyword, oper):
         self.summaryText = "The data %s be related by a linear relationsip\
-         (R=%.2f). y =  %.2fx %s. F-test: %.2f %s %.2f.\
-         " % (keyword, math.sqrt(self.r_2), self.b_1, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
-    
+         (R=%.2f). y =  %.3g(x - %.3g) %s. F-test: %.2f %s %.2f.\
+         " % (keyword, math.sqrt(self.r_2), self.b_1, self.xmin, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
+        #temp = self.b_1
+        #ass = 1/0
+        
     def strongSignificance(self):
         self.formatSummaryText("is likely to", ">")
         pass

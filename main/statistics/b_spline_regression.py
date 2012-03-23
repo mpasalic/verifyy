@@ -24,7 +24,7 @@ class BSplineRegression(Regression):
     
     # This method 
     def setRegressionFormula(self, curve):
-        curve.generateEquationList()
+        curve.generateEquationList(0)
         self.x_func = curve.x_func
         self.y_func = curve.y_func
         self.t_count = curve.t_count
@@ -53,12 +53,20 @@ class BSplineRegression(Regression):
         if len(data) < 5:
             return
         
+        self.xmin = min(map(lambda pt: pt.x, data))
+        self.xmax = max(map(lambda pt: pt.x, data))
+        
         points = []
+        points_str=[]
         for datapt in data:
             points.append(point(datapt.x, datapt.y))
         
+        #for datapt in points:
+        #    datapt.x = datapt.x - self.xmin
+        #    points_str.append(str(datapt))
+        
         #1. Make sure x, y lengths are learge enough 
-        confidence_thresh   = 0.66
+        confidence_thresh   = 1.0
         stddev_thresh       = 1.0
         decay_thresh        = 1.0
         clusters = do_cluster1(points, confidence_thresh, stddev_thresh, decay_thresh)
@@ -67,7 +75,6 @@ class BSplineRegression(Regression):
         clusters = params['clusters']
         
         if (len(clusters) < 3):
-            # This dataset is too noisy/degenerate: we don't have enough control points
             return
         
         curve = b_spline(params)
