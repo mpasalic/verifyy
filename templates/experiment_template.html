@@ -44,20 +44,33 @@ typechange = function (variable) {
 	unitsArea.style['display'] = !shouldDisplayArea ? 'inline' : 'none';
 };
 
-{
-    onLoadPrev = null
-    if (window.onLoad) {
-        onLoadPrev = window.onLoad;
-    }
-    window.onLoad = function() {
-        typechange('x');
-        if (null != onLoadPrev) {
-            onLoadPrev();
-        }
-    };
+onLoadPrev = null
+if (window.onload) {
+	onLoadPrev = window.onload;
 }
-
-
+window.onload = function() {
+    loadInitial('x');
+    loadInitial('y');
+	typechange('x');
+	typechange('y');
+	if (null != onLoadPrev) {
+		onLoadPrev();
+	}
+};
+loadInitial = function(variable) {
+    var choicesDiv = getChoicesDiv(variable);
+    var areaDiv = document.getElementById('choice_area_' + variable);
+    
+    var choices = initial[variable];
+    if (choices.length > 0) {
+        areaDiv.inited = true;
+    }
+    for (var i = 0; i < choices.length; i++) {
+        appendChoice(choicesDiv, variable, i, i == choices.length - 1);
+        var input = document.getElementById(getChoiceId(variable, i, 'input'));
+        input.value = choices[i];
+    }
+};
 getChoicesDiv = function (variable) {
 	return document.getElementById('choice_area_' + variable + '_optionsdiv');
 };
@@ -111,6 +124,17 @@ choiceClick = function (variable, index, plus) {
 		document.getElementById(getChoiceId(variable, choicesDiv.numChoices - 1, 'plus')).style['display'] = 'inline-block';
 	}
 };
+
+initial = [];
+initial['x'] = [
+	{% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}"{{ choice.option }}"{% endfor %}
+    {% for choice in choicesX %}{% if not forloop.first %}, {% endif %}"{{ choice.option }}"{% endfor %}
+];
+
+initial['y'] = [
+	{% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}"{{ choice.option }}"{% endfor %}
+    {% for choice in choicesY %}{% if not forloop.first %}, {% endif %}"{{ choice.option }}"{% endfor %}
+];
 </script>
 
         <div class="box_header">experiment</div>

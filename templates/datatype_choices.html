@@ -1,7 +1,31 @@
-<select id="{{ var }}type" name="{{ var }}type" onchange="typechange('{{ var }}')" style="width: 130px;">
-    <option id="{{ var }}_opt_r" value="r" selected="selected">Number</option>
-    <option id="{{ var }}_opt_c" value="c">Choice</option>
+<select id="{{ var }}type" name="{{ var }}type"	onchange="typechange('{{ var }}')" style="width: 130px;">
+    <option id="{{ var }}_opt_r" value="r"
+		{% if var == 'x' %}
+			{% if exp.x_type == 'r' %}
+				selected="selected"
+			{% endif %}
+		{% else %}
+			{% if exp.y_type == 'r' %}
+				selected="selected"
+			{% endif %}
+		{% endif %}
+		>Number</option>
+    <option id="{{ var }}_opt_c" value="c"
+		{% if var == 'x' %}
+			{% if exp.x_type == 'c' %}
+				selected="selected"
+			{% endif %}
+		{% else %}
+			{% if exp.y_type == 'c' %}
+				selected="selected"
+			{% endif %}
+		{% endif %}
+		>Choice</option>
     {% if var == 'x' %}
-        <option id="{{ var }}_opt_t" value="t">Date and Time</option>
+        <option id="{{ var }}_opt_t" value="t"
+			{% if exp.x_type == 't' %}
+				selected="selected"
+			{% endif %}
+			>Date and Time</option>
     {% endif %}
 </select>

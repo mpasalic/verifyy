@@ -417,6 +417,8 @@ def create_experiment(request):
         return login(request)
     errmsg = ["Please fill out all fields"]
     exp = Experiment()
+    choicesX = []
+    choicesY = []
     try:
         exp.x_name = request.POST['x']
         exp.y_name = request.POST['y']
@@ -428,16 +430,6 @@ def create_experiment(request):
         exp.user = request.user
         exp.vote = 0
 		
-        if len(exp.x_name) < 3:
-            errmsg[0] = "The x variable must be at least 3 letters."
-            raise KeyError(errmsg)
-        if len(exp.y_name) < 3:
-            errmsg[0] = "The y variable must be at least 3 letters."
-            raise KeyError(errmsg)
-        if len(exp.description) == 0:
-            errmsg[0] = "You must provide a description."
-            raise KeyError(errmsg)
-        
         def process_choices(var, vartype, errmsg):
             if vartype != 'c':
                 return []
@@ -458,6 +450,16 @@ def create_experiment(request):
         
         choicesX = process_choices('x', exp.x_type, errmsg)
         choicesY = process_choices('y', exp.y_type, errmsg)
+		
+        if len(exp.x_name) < 3:
+            errmsg[0] = "The x variable must be at least 3 letters."
+            raise KeyError(errmsg)
+        if len(exp.y_name) < 3:
+            errmsg[0] = "The y variable must be at least 3 letters."
+            raise KeyError(errmsg)
+        if len(exp.description) == 0:
+            errmsg[0] = "You must provide a description."
+            raise KeyError(errmsg)
         
         # If we've made it this far, we can save everything now
         exp.save()
@@ -474,7 +476,8 @@ def create_experiment(request):
         at = get_auth_token(request)
         put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
-        return render_to_response('new_experiment.html', {'error_message':errmsg[0], 'request':request, 'exp':exp})
+        return render_to_response('new_experiment.html', {'error_message':errmsg[0], 'request':request, 'exp':exp,
+                                                          'choicesX':choicesX, 'choicesY':choicesY})
 	
     
     return redirect("/view/%d/" % (exp.id))
