@@ -54,6 +54,7 @@ def index(request):
                             "208phoeu092uent", "foo@suremail.info")
 		user = auth.authenticate(username=user, password="208phoeu092uent")
                 auth.login(request, user)
+                fb.save_code(user, code)
                 return redirect('/');
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
