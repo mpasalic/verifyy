@@ -96,9 +96,11 @@ class LinearRegression(Regression):
     
     def formatSummaryText(self, keyword, oper):
         self.summaryText = "The data %s be related by a linear relationsip\
-         (R=%.2f). y =  %.2fx %s. F-test: %.2f %s %.2f.\
-         " % (keyword, math.sqrt(self.r_2), self.b_1, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
-    
+         (R=%.2f). y =  %.3g(x - %.3g) %s. F-test: %.2f %s %.2f.\
+         " % (keyword, math.sqrt(self.r_2), self.b_1, self.xmin, self.fmtTerm(self.b_0), self.f_value, oper, self.f_goal)
+        #temp = self.b_1
+        #ass = 1/0
+        
     def strongSignificance(self):
         self.formatSummaryText("is likely to", ">")
         pass

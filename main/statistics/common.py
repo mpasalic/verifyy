@@ -25,8 +25,8 @@ class Regression(Analysis):
         
     def fmtTerm(self, x):
         if x < 0:
-            return "- %.2f" % abs(x)
-        return "+ %.2f" % abs(x)
+            return "- %.3g" % abs(x)
+        return "+ %.3g" % abs(x)
     
 # RegressionPicker uses r^2 values to 
 # pick the best regression
