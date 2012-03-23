@@ -735,7 +735,7 @@ function drawUserTable(xmldata) {
         var xTimeFmtFunc = getFormatterFunc(timefold, xMax-xMin);
     {% endif %}
     
-	data.addRows(dataElements.length + 1);
+	data.addRows(dataElements.length + (joined ? 1 : 0));
 
 	for (var i = 0; i < dataElements.length; i++) {
 		var dataElement = dataElements[i];
@@ -758,9 +758,12 @@ function drawUserTable(xmldata) {
     dojo.place(xinputCpy, xinputWrap);
     dojo.place(yinputCpy, yinputWrap);    
     
-	data.setCell(dataElements.length, 0, xinputWrap.innerHTML)
-	data.setCell(dataElements.length, 1, yinputWrap.innerHTML)
-	data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />")
+    
+    if (joined) {
+        data.setCell(dataElements.length, 0, xinputWrap.innerHTML);
+        data.setCell(dataElements.length, 1, yinputWrap.innerHTML);
+        data.setCell(dataElements.length, 2, "<input class=\"inputselect\" id=\"comment_entry\" type=\"text\" />");
+    }
 	
 	var table = new google.visualization.Table(document.getElementById('table_div'));
 	var cssClassNames = {headerRow: 'data_table_header_row', tableRow: 'data_table_row',
@@ -824,6 +827,12 @@ function addDataEntry() {
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send(params);
 }
+
+{% if subscription %}
+joined = true;
+{% else %}
+joined = false;
+{% endif %}
 </script>
 <style type="text/css">
 #filter_selector {
