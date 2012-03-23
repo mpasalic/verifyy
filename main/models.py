@@ -11,6 +11,11 @@ DATA_TYPES = (
 	('c', 'Choice')
 )
 
+class UserProfile(models.Model):
+    # This field is required.
+    user = models.OneToOneField(User)
+    name = models.TextField()
+
 class Experiment(models.Model):
 	x_name = models.CharField(max_length=256)
 	x_type = models.CharField(max_length=1, choices=DATA_TYPES)

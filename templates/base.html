@@ -37,7 +37,7 @@ getXHR = function() {
     <div style="margin-top: 10px;" class="main_page_header">
         <div style="position: relative; left: 80px; top: 90px;">
             <form action="/search" method="get" >
-                <input class="search_box" name="q" id="search_bar" type="textbox" onkeyup="suggest();" onblur="displaySuggestions(false);" style="width: 330px; height: 22px;">
+                <input class="search_box" name="q" id="search_bar" type="textbox" autocomplete="off" onkeyup="suggest();" onblur="displaySuggestions(false);" style="width: 330px; height: 22px;">
                 <div id="search_suggest" class="search_suggest" style="width: 310px;"></div>
             </form> 
         </div>
