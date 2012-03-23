@@ -939,6 +939,13 @@ function addDataEntry() {
             </div>
         </div>
     
+        <div id="addthis" style="float: right; width: 72px">
+            <a name="fb_share" type="icon"></a> 
+            <span style="position: relative; top: 2px">
+                <g:plusone size="small" annotation="none"></g:plusone>
+            </span>
+        </div>
+    
         <div class="box_header">experiment</div>
     
         <div class="rounded_small_box experiment_box centered_box" style="width: 650px;">
@@ -1104,6 +1111,17 @@ function addDataEntry() {
 	{% endif %}	
     </div>
 </div>
+
+<script src="http://static.ak.fbcdn.net/connect.php/js/FB.Share" 
+        type="text/javascript">
+</script>
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
 
 {% endblock %}
 

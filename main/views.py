@@ -21,7 +21,7 @@ from exceptions import ValueError
 from django.db.models import Avg, Max, Min, Count, Q
 import urllib2
 import re
-import fb
+#import fb
 
 def authCheck(request):
     authed = not isinstance(request.user,AnonymousUser)
