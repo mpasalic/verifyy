@@ -21,63 +21,40 @@ from exceptions import ValueError
 from django.db.models import Avg, Max, Min, Count, Q
 import urllib2
 import re
-import main.facebook as fb
+import fb
 
 def authCheck(request):
     authed = not isinstance(request.user,AnonymousUser)
     return render_to_response('auth.html', {'authed': authed, 'user': request.user} )
 
-def get_auth_token(request):
-    res = FBAuthCode.objects.filter(user=request.user)
-    if not res: return None
-    code = res[0].code
-
-    r = urllib2.urlopen("https://graph.facebook.com/oauth/access_token?client_id=205425319498174&redirect_uri=http://localhost:8000/&client_secret=1a5aa67a3a7f8bbe40422a8d01445e82&code=%s" % code).read()
-    return r.split('=')[1]
-
-def get_cached_token(request):
-    authed = not isinstance(request.user,AnonymousUser)
-    if not authed: return None
-    res = list(FBAuthToken.objects.filter(user=request.user))
-    if not res: return None
-    return res[-1].token
-
-def get_name(at):
-    if not at: return ""
-    g = fb.GraphAPI(access_token = at )
-    me = g.get_object('me')
-    return me['first_name'] + ' ' + me['last_name']
-
-def put_wall(at, msg):
-    if not at: return None
-    g = fb.GraphAPI(access_token = at)
-    g.put_object("me", "feed",
-                message=msg,
-               name= 'VerifyY',
-               picture= 'http://myfriendfactory.appspot.com/static/images/wall.png',
-               link= 'http://www.verifyy.com',
-               actions= [
-                    {
-                       "name": "View Experiment",
-                       "link": "http://www.verifyy.com/"
-                    }])
-
 def msg(request):
-    at = get_auth_token(request)
-    put_wall(at, "I just created an experiment on VerifyY, come check it out!")
+    at = fb.get_auth_token(request)
+    fb.put_wall(at, "I just created an experiment on VerifyY, come check it out!")
 
     #return render_to_response('hello.html', {'code': get_auth_token(request)})
     return render_to_response('hello.html', {'code': get_name(at)})
 
+def create_user(userName, name, password, email):
+        existingUser = User.objects.filter(username = userName)
+        if len(existingUser) == 0:
+                user = User.objects.create_user(userName, email, password)
+                user.save();
+
+                UserProfile(user=user, name=name).save()
+        else:
+                return False
+
 def index(request):
 	authed = not isinstance(request.user,AnonymousUser)
-	if 'code' in request.GET and authed:
-		fba = FBAuthCode(code = request.GET['code'], user = request.user)
-		fba.save()
-
-		at = get_auth_token(request)
-		fba = FBAuthToken(token = at, user = request.user)
-		fba.save()
+	if 'code' in request.GET and not authed:
+                code = request.GET['code']
+                token = fb.get_token_from_code(code)
+                user = "fb_" + fb.get_profile(token)["id"]
+                create_user(user, fb.get_profile(token)["name"], 
+                            "208phoeu092uent", "foo@suremail.info")
+		user = auth.authenticate(username=user, password="208phoeu092uent")
+                auth.login(request, user)
+                return redirect('/');
 
 	list = Experiment.objects.all().order_by('-votetotal')[:5]
 	return render_to_response('frontpage.html', {# 'fullname': get_name(at), 
@@ -101,6 +78,7 @@ def logout(request):
 	auth.logout(request)
 	return render_to_response('login.html', { 'request': request, 'info_message': "Succesfully logged out" })
 
+
 def register(request):
 	if (request.method == 'GET'): 
 		return render_to_response('register.html', { 'request': request })
@@ -108,10 +86,11 @@ def register(request):
 		try:
 			userName = request.POST['username']
 			existingUser = User.objects.filter(username = userName)
-			if len(existingUser) == 0:
-				user = User.objects.create_user(userName, request.POST['email'], request.POST['password'])
-				user.save();
-			else:
+			if not create_user(userName, 
+                                           userName,
+                                           request.POST['email'], 
+                                           request.POST['password']):
+
 				return render_to_response('register.html', { 'error_message' : "Username is taken",  'request': request  })
 		except (KeyError):
 			return render_to_response('register.html', { 'error_message' : "Please fill out all fields",  'request': request  })
@@ -471,8 +450,8 @@ def create_experiment(request):
         
         addToIndex(exp)
         
-        at = get_auth_token(request)
-        put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
+        at = fb.get_auth_token(request)
+        fb.put_wall(at, "I just created an experiment called `%s` on VerifyY, come check it out!" % (exp.y_name + " with " + exp.x_name) )
     except (KeyError):
         return render_to_response('new_experiment.html', {'error_message':errmsg[0], 'request':request, 'exp':exp})
 	

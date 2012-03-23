@@ -15,7 +15,7 @@ DATABASES['default'] = {'ENGINE': 'dbindexer', 'TARGET': 'native'}
 AUTOLOAD_SITECONF = 'indexes'
 
 SECRET_KEY = '=r-$b*8hglm+858&9t043hlm6-&6-3d3vfc4((7yd0dbrakhvi'
-
+AUTH_PROFILE_MODULE = 'main.UserProfile'
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 STATIC_DOC_ROOT = PROJECT_ROOT + '/static/'
