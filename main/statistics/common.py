@@ -48,7 +48,7 @@ class RegressionPicker(Analysis):
                     if regression.r_2 > 0.7:
                         stealResultsFrom = regression
                         break
-            except Exception as e:
+            except Exception, e:
                 pass
         if None != stealResultsFrom:
             for name, thing in inspect.getmembers(stealResultsFrom):

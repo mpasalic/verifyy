@@ -200,7 +200,7 @@ def submit(request, exp_id):
             y_val = parseTypeOrError(yraw, exp.y_type, y_enum)
             data = Data(x = x_val, y = y_val, comments = request.POST['comments'], experiment = exp, user = request.user);
             data.save()
-        except ValueError as err:
+        except ValueError, err:
             #return render_to_response('debugger_response.xml', {'debug': {'1':err}})
             return render_to_response('submiterror.html', {'exp': exp, 'message': submit_error(exp.x_name)})
     

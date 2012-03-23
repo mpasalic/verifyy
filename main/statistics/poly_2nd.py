@@ -101,7 +101,7 @@ class Poly2OrderRegression(Regression):
         # Solve for the model coefficients using Gaussian Elemination
         try :
             X = ge_solve(M, Y)
-        except Exception as e:
+        except Exception, e:
             # This means Matrix was not of full rank (degenerate points)
             # Enforce waiting for more data
             return
