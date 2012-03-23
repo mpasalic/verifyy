@@ -92,7 +92,7 @@ class b_spline(parametric_curve):
         super(b_spline, self).__init__(paramdict)
         self.nintervals = len(self.controlPoints) - 1
     
-    def generateEqnSubexpression(self, iintrvl):
+    def generateEqnSubexpression(self, iintrvl, xshift):
         #1. First get the correct list of control points, 
         #   we need to do a little of black magic and introduce reduntant control
         #   points to be able to interpolate between last/first control points and neighbours
@@ -112,7 +112,7 @@ class b_spline(parametric_curve):
                     +   (t*t)*(%f) \
                     +     (t)*(%f) \
                     +         (%f) \
-                ) }" % (iintrvl, t3_term_x, t2_term_x, t1_term_x, const_term_x)
+                ) }" % (iintrvl, t3_term_x, t2_term_x, t1_term_x, const_term_x+xshift)
 
         y_eqn = "if (ti == %d) { return (1.0/6)*( \
                       (t*t*t)*(%f) \
@@ -123,12 +123,12 @@ class b_spline(parametric_curve):
         return [x_eqn, y_eqn]
     
     
-    def generateEquationList(self):
+    def generateEquationList(self, xshift):
         self.t_count = self.nintervals
         x_func = "function (t, ti) { ";
         y_func = "function (t, ti) { ";
         for i in range(0, self.nintervals):
-            fpair = self.generateEqnSubexpression(i)
+            fpair = self.generateEqnSubexpression(i, xshift)
             x_func = x_func + fpair[0]
             y_func = y_func + fpair[1]
         
