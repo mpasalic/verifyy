@@ -795,8 +795,7 @@ function addDataEntry() {
             x = document.getElementById("x_entry").backup;
             x = Date.parse(x);
         }
-        x = new Date(x);
-        x = formatForServerInUTCString(x);
+        x = x / 1000;
     {% endif %}
     
     disableButton(document.getElementById("add_entry_button"));

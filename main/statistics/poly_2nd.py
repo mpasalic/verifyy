@@ -25,9 +25,10 @@ class Poly2OrderRegression(Regression):
     # This method 
     def setRegressionFormula(self):
         self.t_count = 1
-        x_expr = "(%f - %f)*t + %f" % (self.xmax, self.xmin, self.xmin);
+        x_expr = "(%f)*t + %f" % (self.xmax - self.xmin, self.xmin);
+        x_shifted = "(%f)*t" % (self.xmax - self.xmin)
         self.x_func = "function(t) { return %s; }" % x_expr
-        self.y_func = "function(t) { return (%f)*(%s)*(%s) + (%f)*(%s) + %f; }" % (self.k2, x_expr, x_expr, self.k1, x_expr, self.k0)
+        self.y_func = "function(t) { return (%f)*(%s)*(%s) + (%f)*(%s) + %f; }" % (self.k2, x_shifted, x_shifted, self.k1, x_shifted, self.k0)
         pass
     
     def summary(self):
@@ -64,6 +65,10 @@ class Poly2OrderRegression(Regression):
         
         self.xmin = min(x)
         self.xmax = max(x)
+        
+        for i in range(0, len(x)):
+            x[i] = x[i] - self.xmin
+            
         y_mean = 0
         
         # Compute sums of powers of X
