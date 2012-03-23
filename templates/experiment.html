@@ -948,7 +948,7 @@ function addDataEntry() {
                     <td style="width: 100px;"><strong>{{ exp.x_name }}</strong></td>
 					<td style="width: 100%">
                     {% if exp.x_type == 'c' %}
-                        One of {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                        One of: {% for choice in exp.choicesX %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
                     {% else %}
                         In units of {{ exp.x_units }}
                     {% endif %}
@@ -959,7 +959,7 @@ function addDataEntry() {
                     <td style="width: 100px;"><strong>{{ exp.y_name }}</strong></td>
 					<td style="width: 100%">
                     {% if exp.y_type == 'c' %}
-                        One of {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
+                        One of: {% for choice in exp.choicesY %}{% if not forloop.first %}, {% endif %}{{ choice.option }}{% endfor %}
                     {% else %}
                         In units of {{ exp.y_units }}
                     {% endif %}
@@ -1001,12 +1001,14 @@ function addDataEntry() {
                     <a id="filter_friends" class="filter filter_unselected" href="" onclick="setFilter(2,true); return false;">friends</a>
                     <a id="filter_everyone" class="filter filter_unselected" href="" onclick="setFilter(0,true); return false;">everyone</a>
                 </td>
+                {% if exp.x_type != 'c' %}
                 <td style="text-align: right;">
                     <a id="regress_linr" class="filter filter_unselected" href="" onclick="return setRegressionType(this.id,true);">linear</a>
                     <a id="regress_quad" class="filter filter_unselected" href="" onclick="return setRegressionType(this.id,true);">quadratic</a>
                     <a id="regress_bspl" class="filter filter_unselected" href="" onclick="return setRegressionType(this.id,true);">b-spline</a>
                     <a id="regress_auto" class="filter filter_unselected" href="" onclick="return setRegressionType(this.id,true);">auto</a>
                 </td>
+                {% endif %}
                 {% if exp.x_type == 't' %}
                 </tr><tr><td/><td style="text-align: right;">
                     <a id="proj_hour" class="filter filter_unselected" href="" onclick="return setTimeProjection(this.id,true);">hourly</a>
