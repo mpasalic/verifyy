@@ -17,9 +17,10 @@ class LinearRegression(Regression):
     
     def setRegressionFormula(self):
         self.t_count = 1
-        x_expr = "(%f - %f)*t + %f" % (self.xmax, self.xmin, self.xmin);
+        x_expr = "(%f)*t + %f" % (self.xmax - self.xmin, self.xmin)
+        x_shifted = "(%f)*t" % (self.xmax - self.xmin)
         self.x_func = "function(t) { return %s; }" % x_expr
-        self.y_func = "function(t) { return (%f)*(%s) + (%f); }" % (self.b_1, x_expr, self.b_0)
+        self.y_func = "function(t) { return (%f)*(%s) + (%f); }" % (self.b_1, x_shifted, self.b_0)
         pass
     
     def regress(self, x, y):
@@ -29,6 +30,10 @@ class LinearRegression(Regression):
         
         self.xmin = min(x)
         self.xmax = max(x)
+        
+        # Shift regression to start with 0
+        for i in range(0, self.points):
+            x[i] = x[i] - self.xmin
         
         #1. Compute the regression coefficients
         n = self.points

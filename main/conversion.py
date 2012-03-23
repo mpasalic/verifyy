@@ -82,10 +82,10 @@ def parseTypeOrError(val, type, mapping=None):
         return float(val)
     if type == 't':
         #Here, assume the time is in datetime format
-        dataTime = time.strptime(val, TIME_PARSE_FMT)
+        #dataTime = time.strptime(val, TIME_PARSE_FMT)
         #Convert it to number of seconds since epoch and shove it in as float
-        seconds = calendar.timegm(dataTime)
-        return seconds
+        #seconds = calendar.timegm(dataTime)
+        return float(val)
 
 # This function is used to take care of site's internal time
 # float-value representation and fold it to an appropriate interval
